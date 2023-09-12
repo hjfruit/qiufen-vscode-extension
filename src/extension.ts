@@ -66,16 +66,23 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(GraphqlQiufenProCloseDocCommandId, () => {
-      docServer.close()
-      if (currentPanel) {
-        currentPanel?.dispose()
-      }
-      updateStatusBarItem(
-        GraphqlQiufenProStartDocCommandId,
-        `$(play) Qiufen Start`,
+      loadingStatusBarItem(
         docStatusBarItem,
-        'Open Qiufen Doc Server',
+        'Qiufen is closing',
+        'Qiufen Closed',
       )
+
+      docServer.close(() => {
+        if (currentPanel) {
+          currentPanel?.dispose()
+        }
+        updateStatusBarItem(
+          GraphqlQiufenProStartDocCommandId,
+          `$(play) Qiufen Start`,
+          docStatusBarItem,
+          'Open Qiufen Doc Server',
+        )
+      })
     }),
     vscode.commands.registerCommand(
       GraphqlQiufenProStartDocCommandId,
@@ -85,7 +92,11 @@ export function activate(context: vscode.ExtensionContext) {
           'graphql-qiufen-pro',
         ) as unknown as JsonSettingsType
         const qiufenConfigRes = await getConfiguration()
-        loadingStatusBarItem(docStatusBarItem, 'Qiufen Loading', 'Doc loading')
+        loadingStatusBarItem(
+          docStatusBarItem,
+          'Qiufen is loading',
+          'Doc loading',
+        )
 
         try {
           const { expressServer, resPort } = await startDocServer(
@@ -151,7 +162,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         updateStatusBarItem(
           GraphqlQiufenProCloseDocCommandId,
-          `$(zap) Qiufen Closed`,
+          `$(zap) Close Qiufen`,
           docStatusBarItem,
           'Close Qiufen Doc Server',
           'yellow',
