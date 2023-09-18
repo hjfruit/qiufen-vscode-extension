@@ -71,8 +71,6 @@ export function activate(context: ExtensionContext) {
       const res: boolean | number = await client.sendRequest(Doc_Start)
 
       if (!res) {
-        console.log('0000000000000000000000000000000')
-
         updateStatusBarItem(
           GraphqlQiufenProStartDocCommandId,
           `$(play) Qiufen Start`,

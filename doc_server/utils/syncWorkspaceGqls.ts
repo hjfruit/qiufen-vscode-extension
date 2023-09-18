@@ -20,7 +20,9 @@ import type {
 } from 'graphql'
 import type { _Connection } from 'vscode-languageserver'
 
-/** 填充远程最新的operation到工作区对应文件里面 */
+/**
+ * 填充远程最新的operation到工作区对应文件里面
+ */
 export function fillOperationInWorkspace(
   filePath: string,
   gql: string,
@@ -73,13 +75,15 @@ export function fillOperationInWorkspace(
   fs.writeFileSync(filePath, updateWorkspaceDocumentStr)
 }
 
-// 入口函数
-export async function getWorkspaceGqls(
-  gqlName: string,
-  patternRelativePath: string,
-  workspaceRootPath: string,
-  connection: _Connection,
-) {
+type GetWorkspaceGqlsParams = {
+  gqlName: string
+  patternRelativePath: string
+  workspaceRootPath: string
+  connection: _Connection
+}
+export async function getWorkspaceGqls(params: GetWorkspaceGqlsParams) {
+  const { gqlName, patternRelativePath, workspaceRootPath, connection } = params
+
   const resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths(
     patternRelativePath,
     workspaceRootPath,
@@ -112,7 +116,6 @@ export function getWorkspaceAllGqlsResolveFilePaths(
   workspaceRootPath: string,
 ) {
   const cwdPath = path.join(workspaceRootPath, patternRelativePath)
-
   const gqlFiles = glob.sync('**/*.gql', { cwd: cwdPath })
   const resolveGqlFiles = gqlFiles.map(file => path.join(cwdPath, file))
   return resolveGqlFiles
@@ -125,7 +128,6 @@ export type ReturnTypeGetWorkspaceGqlFileInfo = {
   operationsAsts: readonly DefinitionNode[]
   operationNames: string[]
 }[]
-
 export function getWorkspaceGqlFileInfo(
   files: string[],
   connection: _Connection,
@@ -181,11 +183,16 @@ export function getWorkspaceGqlFileInfo(
   return result
 }
 
+type GetWorkspaceAllGqlsNameAndDataParams = {
+  connection: _Connection
+  jsonSettings: JsonSettingsType
+  workspaceRootPath: string
+}
 export function getWorkspaceAllGqlsNameAndData(
-  connection: _Connection,
-  jsonSettings: JsonSettingsType,
-  workspaceRootPath: string,
+  params: GetWorkspaceAllGqlsNameAndDataParams,
 ) {
+  const { connection, jsonSettings, workspaceRootPath } = params
+
   const resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths(
     jsonSettings.patternRelativePath,
     workspaceRootPath,

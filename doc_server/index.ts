@@ -20,28 +20,36 @@ import type { ReturnTypeGetWorkspaceGqlFileInfo } from './utils/syncWorkspaceGql
 import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { _Connection } from 'vscode-languageserver'
 
-export async function startDocServer(
-  config: GraphqlKitConfig,
-  jsonSettings: JsonSettingsType,
-  connection: _Connection,
-  workspaceRootPath: string,
-) {
-  const { endpoint, port } = config
+type DocServerParams = {
+  qiufenConfig: GraphqlKitConfig
+  jsonSettings: JsonSettingsType
+  connection: _Connection
+  workspaceRootPath: string
+}
+export async function startDocServer(params: DocServerParams) {
+  const { qiufenConfig, jsonSettings, connection, workspaceRootPath } = params
+  const { endpoint, port } = qiufenConfig
 
   const app = express()
   app.use(cors())
   app.use(json({ limit: Infinity }))
 
-  const backendTypeDefs = await fetchTypeDefs(endpoint.url)
-  const localTypeDefs = readLocalSchemaTypeDefs(
-    jsonSettings.patternSchemaRelativePath,
-    workspaceRootPath,
-    connection,
-  )
-  const { workspaceGqlNames, workspaceGqlFileInfo } =
-    getWorkspaceAllGqlsNameAndData(connection, jsonSettings, workspaceRootPath)
+  app.get('/operations', async (_, res) => {
+    const backendTypeDefs = await fetchTypeDefs(endpoint.url)
+    /** 获取本地工作区的schema内容 */
+    const localTypeDefs = readLocalSchemaTypeDefs({
+      filePath: jsonSettings.patternSchemaRelativePath,
+      workspaceRootPath,
+      connection,
+    })
+    /** 获取工作区所有 gql接口名称，gql接口ast和相关数据 */
+    const { workspaceGqlNames, workspaceGqlFileInfo } =
+      getWorkspaceAllGqlsNameAndData({
+        connection,
+        jsonSettings,
+        workspaceRootPath,
+      })
 
-  app.get('/operations', async (req, res) => {
     res.send({
       isAllAddComment: jsonSettings.isAllAddComment,
       typeDefs: backendTypeDefs,
@@ -55,22 +63,24 @@ export async function startDocServer(
     })
   })
 
-  app.get('/reload/operations', async (req, res) => {
+  app.get('/reload/operations', async (_, res) => {
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
     const newBackendTypeDefs = await fetchTypeDefs(endpoint.url, 20000)
-    const newLocalTypeDefs = readLocalSchemaTypeDefs(
-      jsonSettings.patternSchemaRelativePath,
+    /** 这里再次获取本地工作区的schema内容 */
+    const newLocalTypeDefs = readLocalSchemaTypeDefs({
+      filePath: jsonSettings.patternSchemaRelativePath,
       workspaceRootPath,
       connection,
-    )
+    })
+    /** 这里再次获取工作区所有 gql接口名称，gql接口ast和相关数据 */
     const {
       workspaceGqlNames: newWorkspaceGqlNames,
       workspaceGqlFileInfo: newWorkspaceGqlFileInfo,
-    } = getWorkspaceAllGqlsNameAndData(
+    } = getWorkspaceAllGqlsNameAndData({
       connection,
       jsonSettings,
       workspaceRootPath,
-    )
+    })
 
     res.send({
       isAllAddComment: jsonSettings.isAllAddComment,
@@ -87,13 +97,15 @@ export async function startDocServer(
 
   app.post('/update', async (req, res) => {
     const { operationStr, gqlName } = req.body
+
     try {
-      const workspaceRes = await getWorkspaceGqls(
+      const workspaceRes = await getWorkspaceGqls({
+        patternRelativePath: jsonSettings.patternRelativePath,
         gqlName,
-        jsonSettings.patternRelativePath,
         workspaceRootPath,
         connection,
-      )
+      })
+
       if (workspaceRes?.length > 1) {
         // 如果需要更新的gql存在于本地多个文件夹
         res.send({ message: workspaceRes })
@@ -114,7 +126,6 @@ export async function startDocServer(
 
   app.post('/multiple', async (req, res) => {
     const { info, gql } = req.body
-
     info.forEach((infoItm: ReturnTypeGetWorkspaceGqlFileInfo[0]) => {
       // 本地更新时需要全字段comment ---> true，所以传入 true
       fillOperationInWorkspace(infoItm.filename, gql, infoItm.document, true)
@@ -124,26 +135,19 @@ export async function startDocServer(
 
   app.use(express.static(path.resolve(__dirname, '../dist-page-view')))
   // 处理所有路由请求，返回React应用的HTML文件
-  app.get('*', (req, res) => {
+  app.get('*', (_, res) => {
     res.sendFile(path.resolve(__dirname, '../dist-page-view', 'index.html'))
   })
 
-  try {
-    const newPort = await portscanner.findAPortNotInUse([
-      port + 1,
-      port + 2,
-      5567,
-    ])
-
-    const expressServer = app.listen(newPort, () => {
-      // eslint-disable-next-line no-console
-      console.log(
-        `Server listening on port http://localhost:${newPort}/graphql`,
-      )
-    })
-
-    return { expressServer, resPort: newPort }
-  } catch (error: any) {
-    throw new Error(error)
-  }
+  const newPort = await portscanner.findAPortNotInUse([
+    port + 1,
+    port + 2,
+    5567,
+  ])
+  const expressServer = app.listen(
+    newPort /* , () => {
+    console.log(`Server listening on port http://localhost:${newPort}/graphql`)
+  } */,
+  )
+  return { expressServer, resPort: newPort }
 }

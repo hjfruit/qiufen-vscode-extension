@@ -22,7 +22,6 @@ type GetConfigurationParams = {
   workspaceRootPath: string
   tryCatchCallback?: () => void
 }
-
 export async function getConfiguration(params: GetConfigurationParams) {
   const { connection, workspaceRootPath, tryCatchCallback } = params
 

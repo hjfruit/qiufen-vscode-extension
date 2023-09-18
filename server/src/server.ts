@@ -43,6 +43,7 @@ connection.onInitialized(async () => {
     let serverPort: number | undefined
     let qiufenConfig: GraphqlKitConfig | undefined
     let jsonSettings: JsonSettingsType
+
     try {
       const { qiufenConfigResult, jsonSettingsResult } = await getConfiguration(
         {
@@ -58,17 +59,17 @@ connection.onInitialized(async () => {
     }
 
     try {
-      const { expressServer, resPort } = await startDocServer(
+      const { expressServer, resPort } = await startDocServer({
         qiufenConfig,
         jsonSettings,
         connection,
         workspaceRootPath,
-      )
+      })
       docServer = expressServer
       serverPort = resPort
     } catch (error) {
       connection.window.showErrorMessage(
-        (error as any)?.message || (error as string),
+        (error as Error)?.message || (error as string),
       )
       return Promise.resolve(false)
     }
@@ -82,11 +83,10 @@ connection.onInitialized(async () => {
   })
 })
 
-documents.onDidSave(evt => {
-  // connection.window.showInformationMessage(evt.document.getText())
-})
+// documents.onDidSave(evt => {
+// connection.window.showInformationMessage(evt.document.getText())
+// })
 
-connection.onDidChangeWatchedFiles(_change => {})
+// connection.onDidChangeWatchedFiles(_change => {})
 
-// Listen on the connection
-connection.listen()
+connection.listen() // Listen on the connection

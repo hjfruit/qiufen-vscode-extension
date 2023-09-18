@@ -5,23 +5,24 @@ import { buildSchema } from 'graphql'
 
 import type { _Connection } from 'vscode-languageserver'
 
-function readLocalSchemaTypeDefs(
-  filePath: string,
-  workspaceRootPath: string,
-  connection: _Connection,
-) {
-  const qiufenConfigPath = path.join(workspaceRootPath, filePath)
-  let localTypeDefs = `#graphql 
-    type Query {
-       qiufenNeverW: Int 
-    }
-    `
+type ReadLocalSchemaTypeDefsParams = {
+  filePath: string
+  workspaceRootPath: string
+  connection: _Connection
+}
+
+function readLocalSchemaTypeDefs(params: ReadLocalSchemaTypeDefsParams) {
+  const { filePath, workspaceRootPath, connection } = params
+  const localSchemaPath = path.join(workspaceRootPath, filePath)
+
+  let localTypeDefs = ''
 
   try {
-    localTypeDefs = fs.readFileSync(qiufenConfigPath).toString()
+    localTypeDefs = fs.readFileSync(localSchemaPath).toString()
   } catch (err) {
     connection.window.showWarningMessage('read local schema failed')
     localTypeDefs = `#graphql 
+    # 自定义一个默认schema
     type Query {
        qiufenNeverW: Int 
     }
@@ -31,8 +32,9 @@ function readLocalSchemaTypeDefs(
   try {
     buildSchema(localTypeDefs)
   } catch (error) {
-    connection.window.showWarningMessage((error as any).message)
+    connection.window.showWarningMessage((error as Error).message)
     localTypeDefs = `#graphql 
+   # 自定义一个默认schema
     type Query {
        qiufenNeverW: Int 
     }
