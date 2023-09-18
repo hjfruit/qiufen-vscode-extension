@@ -8,12 +8,19 @@ import { TextDocument } from 'vscode-languageserver-textdocument'
 import { URI } from 'vscode-uri'
 import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 
-import { Doc_Close, Doc_Start } from '@/client/eventNames'
+import {
+  Doc_Close,
+  Doc_Start,
+  Mock_Close,
+  Mock_Start,
+} from '@/client/eventNames'
 import { startDocServer } from '@/doc_server'
+import { startMockServer } from '@/mock_server'
 
 import { getConfiguration } from './utils/getWorkspaceConfig'
 
 import type { JsonSettingsType } from './utils/getWorkspaceConfig'
+import type { ApolloServer } from '@apollo/server'
 import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { Server } from 'http'
 
@@ -22,6 +29,7 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
 documents.listen(connection)
 
 let docServer: Server
+let mockServer: ApolloServer
 
 connection.onInitialize(() => {
   return {
@@ -35,11 +43,8 @@ connection.onInitialize(() => {
 })
 
 connection.onInitialized(async () => {
-  const workspaceFolders = await connection.workspace.getWorkspaceFolders()
-  const workspaceRootPathUri = URI.parse(workspaceFolders?.[0].uri || '')
-  const workspaceRootPath = uriToFsPath(workspaceRootPathUri, true)
-
   connection.onRequest(Doc_Start, async () => {
+    const workspaceRootPath = await getWorkspaceRootPath()
     let serverPort: number | undefined
     let qiufenConfig: GraphqlKitConfig | undefined
     let jsonSettings: JsonSettingsType
@@ -76,15 +81,54 @@ connection.onInitialized(async () => {
 
     return Promise.resolve(serverPort)
   })
-
   connection.onRequest(Doc_Close, async () => {
-    docServer.close()
+    docServer?.close()
+    return Promise.resolve(true)
+  })
+
+  connection.onRequest(Mock_Start, async () => {
+    const workspaceRootPath = await getWorkspaceRootPath()
+    const { qiufenConfigResult } = await getConfiguration({
+      workspaceRootPath,
+      connection,
+    })
+
+    try {
+      mockServer = await startMockServer({
+        qiufenConfigs: qiufenConfigResult,
+        connection,
+        workspaceRootPath,
+      })
+    } catch (error) {
+      connection.window.showErrorMessage(
+        (error as Error)?.message || (error as string),
+      )
+      return Promise.resolve(false)
+    }
+
+    return Promise.resolve(true)
+  })
+  connection.onRequest(Mock_Close, async () => {
+    await mockServer?.stop()
     return Promise.resolve(true)
   })
 })
 
+/** 获取工作区根目录路径 */
+async function getWorkspaceRootPath() {
+  const workspaceFolders = await connection.workspace.getWorkspaceFolders()
+  const workspaceRootPathUri = URI.parse(workspaceFolders?.[0].uri || '')
+  const workspaceRootPath = uriToFsPath(workspaceRootPathUri, true)
+  return workspaceRootPath
+}
+
 // documents.onDidSave(evt => {
-// connection.window.showInformationMessage(evt.document.getText())
+//   const qiufenConfigFilenameUri = URI.parse(evt.document.uri || '')
+//   const qiufenConfigPath = uriToFsPath(qiufenConfigFilenameUri, true)
+//   const basename = path.basename(qiufenConfigPath)
+
+//   if (basename === 'qiufen.config.js' || basename === 'qiufen.config.cjs') {
+//   }
 // })
 
 // connection.onDidChangeWatchedFiles(_change => {})

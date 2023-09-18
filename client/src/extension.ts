@@ -1,9 +1,16 @@
 import * as path from 'path'
 
-import { window, commands, env, Uri, StatusBarAlignment } from 'vscode'
+import {
+  window,
+  commands,
+  env,
+  Uri,
+  StatusBarAlignment,
+  workspace,
+} from 'vscode'
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node'
 
-import { Doc_Close, Doc_Start } from '../eventNames'
+import { Doc_Close, Doc_Start, Mock_Close, Mock_Start } from '../eventNames'
 
 import type { ExtensionContext, StatusBarItem } from 'vscode'
 import type {
@@ -14,6 +21,7 @@ import type {
 let client: LanguageClient
 let docStatusBarItem: StatusBarItem
 let mockStatusBarItem: StatusBarItem
+let mockServerStarted = false
 
 const GraphqlQiufenProCloseDocCommandId = 'graphql-qiufen-pro.qiufenClosed'
 const GraphqlQiufenProStartDocCommandId = 'graphql-qiufen-pro.qiufenStart'
@@ -47,8 +55,54 @@ export function activate(context: ExtensionContext) {
   client.start()
 
   context.subscriptions.push(
-    commands.registerCommand(GraphqlQiufenProCloseMockCommandId, () => {}),
-    commands.registerCommand(GraphqlQiufenProStartMockCommandId, () => {}),
+    // 保存 qiufen.config.js 时重启mock服务
+    workspace.onDidSaveTextDocument(async document => {
+      const basename = path.basename(document.fileName)
+      if (
+        (basename === 'qiufen.config.js' || basename === 'qiufen.config.cjs') &&
+        mockServerStarted
+      ) {
+        await commands.executeCommand(GraphqlQiufenProCloseMockCommandId)
+        await commands.executeCommand(GraphqlQiufenProStartMockCommandId)
+      }
+    }),
+
+    commands.registerCommand(GraphqlQiufenProCloseMockCommandId, async () => {
+      loadingStatusBarItem(
+        mockStatusBarItem,
+        'Mocking is closing',
+        'Mocking closed',
+      )
+      await client.sendRequest(Mock_Close)
+      mockServerStarted = false
+      updateStatusBarItem(
+        GraphqlQiufenProStartMockCommandId,
+        `$(lightbulb) Mock`,
+        mockStatusBarItem,
+        'Open Qiufen Mock Server',
+      )
+    }),
+    commands.registerCommand(GraphqlQiufenProStartMockCommandId, async () => {
+      loadingStatusBarItem(mockStatusBarItem, 'Loading', 'Mocking loading')
+      const res = await client.sendRequest(Mock_Start)
+      if (!res) {
+        updateStatusBarItem(
+          GraphqlQiufenProStartMockCommandId,
+          `$(lightbulb) Mock`,
+          mockStatusBarItem,
+          'Open Qiufen Mock Server',
+        )
+      } else {
+        mockServerStarted = true
+        updateStatusBarItem(
+          GraphqlQiufenProCloseMockCommandId,
+          `$(zap) Mock Closed`,
+          mockStatusBarItem,
+          'Close Qiufen Mock Server',
+          'yellow',
+        )
+      }
+    }),
 
     commands.registerCommand(GraphqlQiufenProCloseDocCommandId, async () => {
       loadingStatusBarItem(
