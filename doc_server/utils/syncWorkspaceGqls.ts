@@ -8,8 +8,8 @@ import {
 } from '@fruits-chain/qiufen-pro-helpers'
 import glob from 'glob'
 import _ from 'lodash'
-import { workspace, window } from 'vscode'
-import * as vscode from 'vscode'
+
+import type { JsonSettingsType } from '@/server/src/utils/getWorkspaceConfig'
 
 import type {
   DefinitionNode,
@@ -18,6 +18,7 @@ import type {
   DocumentNode,
   ExecutableDefinitionNode,
 } from 'graphql'
+import type { _Connection } from 'vscode-languageserver'
 
 /** 填充远程最新的operation到工作区对应文件里面 */
 export function fillOperationInWorkspace(
@@ -73,9 +74,20 @@ export function fillOperationInWorkspace(
 }
 
 // 入口函数
-export async function getWorkspaceGqls(gqlName: string) {
-  const resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths()
-  const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+export async function getWorkspaceGqls(
+  gqlName: string,
+  patternRelativePath: string,
+  workspaceRootPath: string,
+  connection: _Connection,
+) {
+  const resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths(
+    patternRelativePath,
+    workspaceRootPath,
+  )
+  const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(
+    resolveGqlFiles,
+    connection,
+  )
   const filteredWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter(gqlFileItm =>
     gqlFileItm.operationNames.includes(gqlName),
   )
@@ -95,11 +107,11 @@ export async function getWorkspaceGqls(gqlName: string) {
 /**
  * 匹配工作区后缀 *.gql 所有文件，返回文件绝对路径
  */
-export function getWorkspaceAllGqlsResolveFilePaths() {
-  const { patternRelativePath = '' } =
-    vscode.workspace.getConfiguration('graphql-qiufen-pro')
-  const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
-  const cwdPath = path.join(workspaceRootPath!, patternRelativePath)
+export function getWorkspaceAllGqlsResolveFilePaths(
+  patternRelativePath: string,
+  workspaceRootPath: string,
+) {
+  const cwdPath = path.join(workspaceRootPath, patternRelativePath)
 
   const gqlFiles = glob.sync('**/*.gql', { cwd: cwdPath })
   const resolveGqlFiles = gqlFiles.map(file => path.join(cwdPath, file))
@@ -116,6 +128,7 @@ export type ReturnTypeGetWorkspaceGqlFileInfo = {
 
 export function getWorkspaceGqlFileInfo(
   files: string[],
+  connection: _Connection,
 ): ReturnTypeGetWorkspaceGqlFileInfo {
   const result = files.map(file => {
     const content = fs.readFileSync(file, 'utf8')
@@ -136,7 +149,7 @@ export function getWorkspaceGqlFileInfo(
       // 这里验证一下本地 gql 接口语法错误没有
       workspaceDocumentAst = parseOperationWithDescriptions(content)
     } catch {
-      window.showErrorMessage(`${file}: GraphQL Syntax Error`)
+      connection.window.showErrorMessage(`${file}: GraphQL Syntax Error`)
       return {
         filename: file,
         document: undefined as unknown as DocumentNode,
@@ -168,9 +181,19 @@ export function getWorkspaceGqlFileInfo(
   return result
 }
 
-export function getWorkspaceAllGqlsNameAndData() {
-  const resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths()
-  const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+export function getWorkspaceAllGqlsNameAndData(
+  connection: _Connection,
+  jsonSettings: JsonSettingsType,
+  workspaceRootPath: string,
+) {
+  const resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths(
+    jsonSettings.patternRelativePath,
+    workspaceRootPath,
+  )
+  const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(
+    resolveGqlFiles,
+    connection,
+  )
   const workspaceGqlNames = workspaceGqlFileInfo
     .map(itm => itm.operationNames)
     .flat(Infinity) as string[]

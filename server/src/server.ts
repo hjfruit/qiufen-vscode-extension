@@ -1,5 +1,3 @@
-import * as path from 'path'
-
 import {
   createConnection,
   TextDocuments,
@@ -10,9 +8,20 @@ import { TextDocument } from 'vscode-languageserver-textdocument'
 import { URI } from 'vscode-uri'
 import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 
+import { Doc_Close, Doc_Start } from '@/client/eventNames'
+import { startDocServer } from '@/doc_server'
+
+import { getConfiguration } from './utils/getWorkspaceConfig'
+
+import type { JsonSettingsType } from './utils/getWorkspaceConfig'
+import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
+import type { Server } from 'http'
+
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
 documents.listen(connection)
+
+let docServer: Server
 
 connection.onInitialize(() => {
   return {
@@ -29,36 +38,52 @@ connection.onInitialized(async () => {
   const workspaceFolders = await connection.workspace.getWorkspaceFolders()
   const workspaceRootPathUri = URI.parse(workspaceFolders?.[0].uri || '')
   const workspaceRootPath = uriToFsPath(workspaceRootPathUri, true)
-  const qiufenConfigPath = path.join(workspaceRootPath, 'qiufen.config.js')
 
-  delete eval('require.cache')[qiufenConfigPath]
-  const config = eval('require')(qiufenConfigPath)
+  connection.onRequest(Doc_Start, async () => {
+    let serverPort: number | undefined
+    let qiufenConfig: GraphqlKitConfig | undefined
+    let jsonSettings: JsonSettingsType
+    try {
+      const { qiufenConfigResult, jsonSettingsResult } = await getConfiguration(
+        {
+          workspaceRootPath,
+          connection,
+        },
+      )
+      qiufenConfig = qiufenConfigResult
+      jsonSettings = jsonSettingsResult
+    } catch (error) {
+      connection.window.showErrorMessage(error as string)
+      return Promise.resolve(false)
+    }
 
-  connection.window.showInformationMessage(
-    `🚀wwww listening at: ${config.endpoint.url}`,
-  )
-  connection.window.showInformationMessage(
-    `🚀wwww listening at: ${JSON.stringify(config.mock.scalarMap.Int())}`,
-  )
+    try {
+      const { expressServer, resPort } = await startDocServer(
+        qiufenConfig,
+        jsonSettings,
+        connection,
+        workspaceRootPath,
+      )
+      docServer = expressServer
+      serverPort = resPort
+    } catch (error) {
+      connection.window.showErrorMessage(
+        (error as any)?.message || (error as string),
+      )
+      return Promise.resolve(false)
+    }
 
-  // connection.onRequest('get/workspaceRootPath', workspaceRoot => {
-  //   const qiufenConfigPath = path.join(workspaceRoot, 'qiufen.config.js')
-  //   delete eval('require.cache')[qiufenConfigPath]
-  //   const config = eval('require')(qiufenConfigPath)
+    return Promise.resolve(serverPort)
+  })
 
-  //   connection.window.showInformationMessage(
-  //     `🚀wwww listening at: ${config.endpoint.url}`,
-  //   )
-  //   connection.window.showInformationMessage(
-  //     `🚀wwww listening at: ${JSON.stringify(config.mock.scalarMap.Int())}`,
-  //   )
-
-  //   return config
-  // })
+  connection.onRequest(Doc_Close, async () => {
+    docServer.close()
+    return Promise.resolve(true)
+  })
 })
 
 documents.onDidSave(evt => {
-  connection.window.showInformationMessage(evt.document.getText())
+  // connection.window.showInformationMessage(evt.document.getText())
 })
 
 connection.onDidChangeWatchedFiles(_change => {})

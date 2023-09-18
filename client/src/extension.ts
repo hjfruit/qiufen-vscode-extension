@@ -1,17 +1,11 @@
 import * as path from 'path'
 
-import {
-  workspace,
-  window,
-  commands,
-  env,
-  Uri,
-  StatusBarAlignment,
-} from 'vscode'
+import { window, commands, env, Uri, StatusBarAlignment } from 'vscode'
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node'
 
-import type { JsonSettingsType } from 'src/utils/getWorkspaceConfig'
-import type { ExtensionContext, StatusBarItem, WebviewPanel } from 'vscode'
+import { Doc_Close, Doc_Start } from '../eventNames'
+
+import type { ExtensionContext, StatusBarItem } from 'vscode'
 import type {
   LanguageClientOptions,
   ServerOptions,
@@ -56,8 +50,47 @@ export function activate(context: ExtensionContext) {
     commands.registerCommand(GraphqlQiufenProCloseMockCommandId, () => {}),
     commands.registerCommand(GraphqlQiufenProStartMockCommandId, () => {}),
 
-    commands.registerCommand(GraphqlQiufenProCloseDocCommandId, () => {}),
-    commands.registerCommand(GraphqlQiufenProStartDocCommandId, () => {}),
+    commands.registerCommand(GraphqlQiufenProCloseDocCommandId, async () => {
+      loadingStatusBarItem(
+        docStatusBarItem,
+        'Qiufen is closing',
+        'Qiufen Closed',
+      )
+
+      await client.sendRequest(Doc_Close)
+
+      updateStatusBarItem(
+        GraphqlQiufenProStartDocCommandId,
+        `$(play) Qiufen Start`,
+        docStatusBarItem,
+        'Open Qiufen Doc Server',
+      )
+    }),
+    commands.registerCommand(GraphqlQiufenProStartDocCommandId, async () => {
+      loadingStatusBarItem(docStatusBarItem, 'Qiufen Loading', 'Doc Loading')
+      const res: boolean | number = await client.sendRequest(Doc_Start)
+
+      if (!res) {
+        console.log('0000000000000000000000000000000')
+
+        updateStatusBarItem(
+          GraphqlQiufenProStartDocCommandId,
+          `$(play) Qiufen Start`,
+          docStatusBarItem,
+          'Open Qiufen Doc Server',
+        )
+      } else {
+        updateStatusBarItem(
+          GraphqlQiufenProCloseDocCommandId,
+          `$(zap) Qiufen Closed`,
+          docStatusBarItem,
+          'Close Qiufen Doc Server',
+          'yellow',
+        )
+
+        env.openExternal(Uri.parse(`http:localhost:${res}`))
+      }
+    }),
   )
 
   // 设置底部bar图标

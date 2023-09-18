@@ -1,11 +1,10 @@
 import fs from 'fs'
 import * as path from 'path'
 
-import * as vscode from 'vscode'
-
 import { defaultQiufenConfig } from '../config'
 
 import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
+import type { _Connection } from 'vscode-languageserver'
 
 export type JsonSettingsType = {
   directive: string
@@ -18,12 +17,20 @@ export type JsonSettingsType = {
   patternSchemaRelativePath: string
 }
 
-async function getConfiguration(tryCatchCallback?: () => void) {
-  const jsonSettings = vscode.workspace.getConfiguration('graphql-qiufen-pro')
-  const { port: jsonSettingPort, endpointUrl } =
-    jsonSettings as unknown as JsonSettingsType
+type GetConfigurationParams = {
+  connection: _Connection
+  workspaceRootPath: string
+  tryCatchCallback?: () => void
+}
 
-  const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
+export async function getConfiguration(params: GetConfigurationParams) {
+  const { connection, workspaceRootPath, tryCatchCallback } = params
+
+  const jsonSettings = (await connection.workspace.getConfiguration(
+    'graphql-qiufen-pro',
+  )) as unknown as JsonSettingsType
+  const { port: jsonSettingPort, endpointUrl } = jsonSettings
+
   const qiufenConfigPath = path.join(workspaceRootPath!, 'qiufen.config.js')
   const qiufenConfigPathOfCjs = path.join(
     workspaceRootPath!,
@@ -96,7 +103,5 @@ async function getConfiguration(tryCatchCallback?: () => void) {
     },
   }
 
-  return qiufenConfigResult
+  return { qiufenConfigResult, jsonSettingsResult: jsonSettings }
 }
-
-export default getConfiguration

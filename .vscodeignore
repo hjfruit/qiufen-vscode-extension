@@ -2,10 +2,11 @@
 .vscode-test/**
 out/**
 node_modules/**
-src/**
 mock_server/**
 doc_server/**
 views-doc/**
+client/**
+server/**
 .gitignore
 .yarnrc
 webpack.config.js

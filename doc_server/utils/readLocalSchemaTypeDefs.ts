@@ -2,11 +2,15 @@ import fs from 'fs'
 import * as path from 'path'
 
 import { buildSchema } from 'graphql'
-import { window, workspace } from 'vscode'
 
-function readLocalSchemaTypeDefs(filePath: string) {
-  const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
-  const qiufenConfigPath = path.join(workspaceRootPath!, filePath)
+import type { _Connection } from 'vscode-languageserver'
+
+function readLocalSchemaTypeDefs(
+  filePath: string,
+  workspaceRootPath: string,
+  connection: _Connection,
+) {
+  const qiufenConfigPath = path.join(workspaceRootPath, filePath)
   let localTypeDefs = `#graphql 
     type Query {
        qiufenNeverW: Int 
@@ -16,7 +20,7 @@ function readLocalSchemaTypeDefs(filePath: string) {
   try {
     localTypeDefs = fs.readFileSync(qiufenConfigPath).toString()
   } catch (err) {
-    window.showWarningMessage('read local schema failed')
+    connection.window.showWarningMessage('read local schema failed')
     localTypeDefs = `#graphql 
     type Query {
        qiufenNeverW: Int 
@@ -27,7 +31,7 @@ function readLocalSchemaTypeDefs(filePath: string) {
   try {
     buildSchema(localTypeDefs)
   } catch (error) {
-    window.showWarningMessage((error as any).message)
+    connection.window.showWarningMessage((error as any).message)
     localTypeDefs = `#graphql 
     type Query {
        qiufenNeverW: Int 

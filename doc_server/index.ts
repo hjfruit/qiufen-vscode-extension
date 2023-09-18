@@ -1,11 +1,12 @@
-import path from 'path'
+import * as path from 'path'
 
 import { fetchTypeDefs } from '@fruits-chain/qiufen-pro-helpers'
 import { json } from 'body-parser'
 import cors from 'cors'
 import express from 'express'
 import portscanner from 'portscanner'
-import * as vscode from 'vscode'
+
+import type { JsonSettingsType } from '@/server/src/utils/getWorkspaceConfig'
 
 import getIpAddress from './utils/getIpAddress'
 import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
@@ -17,10 +18,15 @@ import {
 
 import type { ReturnTypeGetWorkspaceGqlFileInfo } from './utils/syncWorkspaceGqls'
 import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
+import type { _Connection } from 'vscode-languageserver'
 
-export async function startDocServer(config: GraphqlKitConfig) {
+export async function startDocServer(
+  config: GraphqlKitConfig,
+  jsonSettings: JsonSettingsType,
+  connection: _Connection,
+  workspaceRootPath: string,
+) {
   const { endpoint, port } = config
-  const jsonSettings = vscode.workspace.getConfiguration('graphql-qiufen-pro')
 
   const app = express()
   app.use(cors())
@@ -29,9 +35,11 @@ export async function startDocServer(config: GraphqlKitConfig) {
   const backendTypeDefs = await fetchTypeDefs(endpoint.url)
   const localTypeDefs = readLocalSchemaTypeDefs(
     jsonSettings.patternSchemaRelativePath,
+    workspaceRootPath,
+    connection,
   )
   const { workspaceGqlNames, workspaceGqlFileInfo } =
-    getWorkspaceAllGqlsNameAndData()
+    getWorkspaceAllGqlsNameAndData(connection, jsonSettings, workspaceRootPath)
 
   app.get('/operations', async (req, res) => {
     res.send({
@@ -52,11 +60,17 @@ export async function startDocServer(config: GraphqlKitConfig) {
     const newBackendTypeDefs = await fetchTypeDefs(endpoint.url, 20000)
     const newLocalTypeDefs = readLocalSchemaTypeDefs(
       jsonSettings.patternSchemaRelativePath,
+      workspaceRootPath,
+      connection,
     )
     const {
       workspaceGqlNames: newWorkspaceGqlNames,
       workspaceGqlFileInfo: newWorkspaceGqlFileInfo,
-    } = getWorkspaceAllGqlsNameAndData()
+    } = getWorkspaceAllGqlsNameAndData(
+      connection,
+      jsonSettings,
+      workspaceRootPath,
+    )
 
     res.send({
       isAllAddComment: jsonSettings.isAllAddComment,
@@ -74,7 +88,12 @@ export async function startDocServer(config: GraphqlKitConfig) {
   app.post('/update', async (req, res) => {
     const { operationStr, gqlName } = req.body
     try {
-      const workspaceRes = await getWorkspaceGqls(gqlName)
+      const workspaceRes = await getWorkspaceGqls(
+        gqlName,
+        jsonSettings.patternRelativePath,
+        workspaceRootPath,
+        connection,
+      )
       if (workspaceRes?.length > 1) {
         // 如果需要更新的gql存在于本地多个文件夹
         res.send({ message: workspaceRes })
