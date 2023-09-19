@@ -55,11 +55,6 @@
           "default": 6700,
           "description": "backend service port"
         },
-        "graphql-qiufen-pro.directive": {
-          "type": "string",
-          "default": "fetchField",
-          "description": "custom backed directive"
-        },
         "graphql-qiufen-pro.patternRelativePath": {
           "type": "string",
           "default": "src/graphql/operations",
@@ -79,11 +74,6 @@
           "type": "boolean",
           "default": false,
           "description": "inserting comment"
-        },
-        "graphql-qiufen-pro.isBrowser": {
-          "type": "boolean",
-          "default": true,
-          "description": "Graphql-Doc opens in the browser or vscode webview"
         }
       }
     }

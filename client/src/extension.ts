@@ -32,7 +32,6 @@ export function activate(context: ExtensionContext) {
   const serverModule = context.asAbsolutePath(
     path.join('dist', 'dist_server.js'),
   )
-
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
     debug: {
@@ -44,18 +43,16 @@ export function activate(context: ExtensionContext) {
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: 'file', language: 'javascript' }],
   }
-
   client = new LanguageClient(
     'QiufenLanguageServer',
     'Qiufen Server',
     serverOptions,
     clientOptions,
   )
-
   client.start()
 
   context.subscriptions.push(
-    // 保存 qiufen.config.js 时重启mock服务
+    // 修改保存 qiufen.config.js 时重启mock服务
     workspace.onDidSaveTextDocument(async document => {
       const basename = path.basename(document.fileName)
       if (
@@ -139,8 +136,7 @@ export function activate(context: ExtensionContext) {
           'Close Qiufen Doc Server',
           'yellow',
         )
-
-        env.openExternal(Uri.parse(`http:localhost:${res}`))
+        await env.openExternal(Uri.parse(`http:localhost:${res}`))
       }
     }),
   )
