@@ -59,7 +59,9 @@ connection.onInitialized(async () => {
       qiufenConfig = qiufenConfigResult
       jsonSettings = jsonSettingsResult
     } catch (error) {
-      connection.window.showErrorMessage(error as string)
+      connection.window.showErrorMessage(
+        (error as Error).message || (error as string),
+      )
       return Promise.resolve(false)
     }
 
