@@ -1,4 +1,5 @@
 import { getOperationNodesForFieldAstBySchema } from '@fruits-chain/qiufen-pro-helpers'
+import { message } from 'antd'
 import { buildSchema, lexicographicSortSchema, printSchema } from 'graphql'
 import create from 'zustand'
 
@@ -113,6 +114,9 @@ const useBearStore = create<BearState>(set => {
             })
             resolve(true)
           })
+          .catch(error => {
+            message.error(error.message)
+          })
       })
     },
     setState: set,
@@ -139,6 +143,9 @@ const useBearStore = create<BearState>(set => {
               ),
             })
             resolve(true)
+          })
+          .catch(error => {
+            message.error(error.message)
           })
       })
     },

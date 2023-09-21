@@ -1,4 +1,4 @@
-import fs from 'fs'
+// import fs from 'fs'
 import * as path from 'path'
 
 import { fetchTypeDefs } from '@fruits-chain/qiufen-pro-helpers'
@@ -40,67 +40,76 @@ export async function startDocServer(params: DocServerParams) {
     //   .readFileSync(path.resolve(__dirname, '../prod-schema.graphql'))
     //   .toString()
 
-    const backendTypeDefs = await fetchTypeDefs(endpoint.url)
-    /** 获取本地工作区的schema内容 */
-    const localTypeDefs = readLocalSchemaTypeDefs({
-      filePath: jsonSettings.patternSchemaRelativePath,
-      workspaceRootPath,
-      connection,
-    })
-    /** 获取工作区所有 gql接口名称，gql接口ast和相关数据 */
-    const { workspaceGqlNames, workspaceGqlFileInfo } =
-      getWorkspaceAllGqlsNameAndData({
+    try {
+      const backendTypeDefs = await fetchTypeDefs(endpoint.url)
+
+      /** 获取本地工作区的schema内容 */
+      const localTypeDefs = readLocalSchemaTypeDefs({
+        filePath: jsonSettings.patternSchemaRelativePath,
+        workspaceRootPath,
+        connection,
+      })
+      /** 获取工作区所有 gql接口名称，gql接口ast和相关数据 */
+      const { workspaceGqlNames, workspaceGqlFileInfo } =
+        getWorkspaceAllGqlsNameAndData({
+          connection,
+          jsonSettings,
+          workspaceRootPath,
+        })
+
+      res.send({
+        isNeedGrouped: jsonSettings.isNeedGrouped,
+        isAllAddComment: jsonSettings.isAllAddComment,
+        typeDefs: backendTypeDefs,
+        maxDepth: jsonSettings.maxDepth,
+        localTypeDefs: localTypeDefs,
+        workspaceGqlNames,
+        workspaceGqlFileInfo,
+        port,
+        IpAddress: getIpAddress(),
+      })
+    } catch (error) {
+      res.status(403).send({ error })
+    }
+  })
+
+  app.get('/reload/operations', async (_, res) => {
+    try {
+      // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
+      // const newBackendTypeDefsGrouped = fs
+      //   .readFileSync(path.resolve(__dirname, '../prod-schema.graphql'))
+      //   .toString()
+      const backendTypeDefs = await fetchTypeDefs(endpoint.url)
+      /** 这里再次获取本地工作区的schema内容 */
+      const newLocalTypeDefs = readLocalSchemaTypeDefs({
+        filePath: jsonSettings.patternSchemaRelativePath,
+        workspaceRootPath,
+        connection,
+      })
+      /** 这里再次获取工作区所有 gql接口名称，gql接口ast和相关数据 */
+      const {
+        workspaceGqlNames: newWorkspaceGqlNames,
+        workspaceGqlFileInfo: newWorkspaceGqlFileInfo,
+      } = getWorkspaceAllGqlsNameAndData({
         connection,
         jsonSettings,
         workspaceRootPath,
       })
 
-    res.send({
-      isNeedGrouped: jsonSettings.isNeedGrouped,
-      isAllAddComment: jsonSettings.isAllAddComment,
-      typeDefs: backendTypeDefs,
-      maxDepth: jsonSettings.maxDepth,
-      localTypeDefs: localTypeDefs,
-      workspaceGqlNames,
-      workspaceGqlFileInfo,
-      port,
-      IpAddress: getIpAddress(),
-    })
-  })
-
-  app.get('/reload/operations', async (_, res) => {
-    // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
-    // const newBackendTypeDefs = await fetchTypeDefs(endpoint.url, 20000)
-    const newBackendTypeDefsGrouped = fs
-      .readFileSync(path.resolve(__dirname, '../prod-schema.graphql'))
-      .toString()
-    /** 这里再次获取本地工作区的schema内容 */
-    const newLocalTypeDefs = readLocalSchemaTypeDefs({
-      filePath: jsonSettings.patternSchemaRelativePath,
-      workspaceRootPath,
-      connection,
-    })
-    /** 这里再次获取工作区所有 gql接口名称，gql接口ast和相关数据 */
-    const {
-      workspaceGqlNames: newWorkspaceGqlNames,
-      workspaceGqlFileInfo: newWorkspaceGqlFileInfo,
-    } = getWorkspaceAllGqlsNameAndData({
-      connection,
-      jsonSettings,
-      workspaceRootPath,
-    })
-
-    res.send({
-      isNeedGrouped: jsonSettings.isNeedGrouped,
-      isAllAddComment: jsonSettings.isAllAddComment,
-      typeDefs: newBackendTypeDefsGrouped,
-      maxDepth: jsonSettings.maxDepth,
-      localTypeDefs: newLocalTypeDefs,
-      workspaceGqlNames: newWorkspaceGqlNames,
-      workspaceGqlFileInfo: newWorkspaceGqlFileInfo,
-      port,
-      IpAddress: getIpAddress(),
-    })
+      res.send({
+        isNeedGrouped: jsonSettings.isNeedGrouped,
+        isAllAddComment: jsonSettings.isAllAddComment,
+        typeDefs: backendTypeDefs,
+        maxDepth: jsonSettings.maxDepth,
+        localTypeDefs: newLocalTypeDefs,
+        workspaceGqlNames: newWorkspaceGqlNames,
+        workspaceGqlFileInfo: newWorkspaceGqlFileInfo,
+        port,
+        IpAddress: getIpAddress(),
+      })
+    } catch (error) {
+      res.status(403).send({ error })
+    }
   })
 
   app.post('/update', async (req, res) => {
