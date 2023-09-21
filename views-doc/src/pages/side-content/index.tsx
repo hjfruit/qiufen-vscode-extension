@@ -10,6 +10,7 @@ import useBearStore from '@/stores'
 import DocSidebar from './components/side-bar/index'
 
 import type { OperationNodesForFieldAstBySchemaReturnType } from '@fruits-chain/qiufen-pro-helpers'
+import type { SelectionNode } from 'graphql'
 import type { FC } from 'react'
 
 interface IProps {}
@@ -22,6 +23,9 @@ const SideContent: FC<IProps> = () => {
     isDisplaySidebar,
     typeDefs,
     setState,
+    identityValue,
+    isNeedGrouped,
+    operationNameGroupedFromBackendObj,
   } = useBearStore(state => state)
   const [loading, setLoading] = useState(false)
 
@@ -33,10 +37,39 @@ const SideContent: FC<IProps> = () => {
     let result: OperationNodesForFieldAstBySchemaReturnType[] = []
     if (typeDefs) {
       const schema = buildSchema(typeDefs)
-      result = getOperationNodesForFieldAstBySchema(schema)
+
+      if (
+        isNeedGrouped &&
+        !!identityValue &&
+        operationNameGroupedFromBackendObj[identityValue]
+      ) {
+        result = getOperationNodesForFieldAstBySchema(schema)?.filter(item => {
+          const sameKeyItem = operationNameGroupedFromBackendObj[
+            identityValue
+          ].find(
+            itm =>
+              `${itm.operation}${itm.operationName}` ===
+              `${item.operationDefNodeAst.operation}${
+                (
+                  item.operationDefNodeAst.selectionSet
+                    .selections[0] as SelectionNode & { nameValue: string }
+                ).nameValue
+              }`,
+          )
+
+          return !!sameKeyItem
+        })
+      } else {
+        result = getOperationNodesForFieldAstBySchema(schema)
+      }
     }
     return result
-  }, [typeDefs])
+  }, [
+    identityValue,
+    isNeedGrouped,
+    operationNameGroupedFromBackendObj,
+    typeDefs,
+  ])
 
   const handleReload = useMemoizedFn(async () => {
     let timer: NodeJS.Timeout | undefined
@@ -72,7 +105,7 @@ const SideContent: FC<IProps> = () => {
   }, [operationObjList])
 
   return (
-    <Spin spinning={!operationObjList.length || loading}>
+    <Spin spinning={!operationObjList?.length || loading}>
       <div style={{ display: 'flex', flexDirection: 'row' }}>
         <div style={{ display: isDisplaySidebar ? 'block' : 'none' }}>
           <DocSidebar

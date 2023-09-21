@@ -11,7 +11,7 @@ export type JsonSettingsType = {
   port: number
   endpointUrl: string
   isAllAddComment: boolean
-  isBrowser: boolean
+  isNeedGrouped: boolean
   maxDepth: number
   patternRelativePath: string
   patternSchemaRelativePath: string
