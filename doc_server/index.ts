@@ -1,4 +1,3 @@
-// import fs from 'fs'
 import * as path from 'path'
 
 import { fetchTypeDefs } from '@fruits-chain/qiufen-pro-helpers'
@@ -36,10 +35,6 @@ export async function startDocServer(params: DocServerParams) {
   app.use(json({ limit: Infinity }))
 
   app.get('/operations', async (_, res) => {
-    // const backendTypeDefsGrouped = fs
-    //   .readFileSync(path.resolve(__dirname, '../prod-schema.graphql'))
-    //   .toString()
-
     try {
       const backendTypeDefs = await fetchTypeDefs(endpoint.url)
 
@@ -76,9 +71,6 @@ export async function startDocServer(params: DocServerParams) {
   app.get('/reload/operations', async (_, res) => {
     try {
       // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
-      // const newBackendTypeDefsGrouped = fs
-      //   .readFileSync(path.resolve(__dirname, '../prod-schema.graphql'))
-      //   .toString()
       const backendTypeDefs = await fetchTypeDefs(endpoint.url)
       /** 这里再次获取本地工作区的schema内容 */
       const newLocalTypeDefs = readLocalSchemaTypeDefs({

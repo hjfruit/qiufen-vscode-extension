@@ -3,6 +3,7 @@ const { Random } = Mock
 
 export const defaultQiufenConfig = {
   mock: {
+    openAllOperationsMocking: false,
     scalarMap: {
       Int: () => Random.integer(0, 100),
       String: () => Random.ctitle(2, 4),

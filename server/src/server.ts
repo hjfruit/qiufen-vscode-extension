@@ -15,12 +15,11 @@ import {
   Mock_Start,
 } from '@/client/eventNames'
 import { startDocServer } from '@/doc_server'
-import { startMockServer } from '@/mock_server'
+import { startMockingServer } from '@/mock_server'
 
 import { getConfiguration } from './utils/getWorkspaceConfig'
 
 import type { JsonSettingsType } from './utils/getWorkspaceConfig'
-import type { ApolloServer } from '@apollo/server'
 import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { Server } from 'http'
 
@@ -29,7 +28,7 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
 documents.listen(connection)
 
 let docServer: Server
-let mockServer: ApolloServer
+let mockServer: Server
 
 connection.onInitialize(() => {
   return {
@@ -90,14 +89,24 @@ connection.onInitialized(async () => {
 
   connection.onRequest(Mock_Start, async () => {
     const workspaceRootPath = await getWorkspaceRootPath()
-    const { qiufenConfigResult } = await getConfiguration({
-      workspaceRootPath,
-      connection,
-    })
+    let qiufenConfig: GraphqlKitConfig | undefined
 
     try {
-      mockServer = await startMockServer({
-        qiufenConfigs: qiufenConfigResult,
+      const { qiufenConfigResult } = await getConfiguration({
+        workspaceRootPath,
+        connection,
+      })
+      qiufenConfig = qiufenConfigResult
+    } catch (error) {
+      connection.window.showErrorMessage(
+        (error as Error).message || (error as string),
+      )
+      return Promise.resolve(false)
+    }
+
+    try {
+      mockServer = await startMockingServer({
+        qiufenConfigs: qiufenConfig,
         connection,
         workspaceRootPath,
       })
@@ -111,7 +120,7 @@ connection.onInitialized(async () => {
     return Promise.resolve(true)
   })
   connection.onRequest(Mock_Close, async () => {
-    await mockServer?.stop()
+    await mockServer?.close()
     return Promise.resolve(true)
   })
 })

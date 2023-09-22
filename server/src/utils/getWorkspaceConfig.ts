@@ -1,9 +1,10 @@
 import fs from 'fs'
 import * as path from 'path'
 
+import type { GraphqlKitConfig } from '@/client/interface'
+
 import { defaultQiufenConfig } from '../config'
 
-import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { _Connection } from 'vscode-languageserver'
 
 export type JsonSettingsType = {
@@ -94,11 +95,20 @@ export async function getConfiguration(params: GetConfigurationParams) {
     },
     localSchemaFile: qiufenConfig?.localSchemaFile || '',
     schemaPolicy: qiufenConfig?.schemaPolicy || 'remote',
+    requestHeaders: qiufenConfig?.requestHeaders || {},
     mock: {
+      openAllOperationsMocking:
+        qiufenConfig?.mock?.openAllOperationsMocking ||
+        defaultQiufenConfig?.mock?.openAllOperationsMocking,
       scalarMap:
         qiufenConfig?.mock?.scalarMap || defaultQiufenConfig?.mock?.scalarMap,
       resolvers:
         qiufenConfig?.mock?.resolvers || defaultQiufenConfig?.mock?.resolvers,
+      operations: qiufenConfig?.mock?.operations || {
+        query: [],
+        mutation: [],
+        subscription: [],
+      },
     },
   }
 
