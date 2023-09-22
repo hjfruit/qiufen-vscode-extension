@@ -19,7 +19,7 @@ interface ServiceConfig {
 }
 
 interface MockConfig {
-  /** Whether all operations are mocking --> default-value: false */
+  /** Whether all operations are mocking --> default-value: true */
   openAllOperationsMocking?: boolean
   /** value map rules, you should add all your scalar type mappers here or you'll get an error */
   scalarMap: any
