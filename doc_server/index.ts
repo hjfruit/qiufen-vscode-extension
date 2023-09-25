@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import * as path from 'path'
 
 import { fetchTypeDefs } from '@fruits-chain/qiufen-pro-helpers'
@@ -34,31 +35,39 @@ export async function startDocServer(params: DocServerParams) {
   app.use(cors())
   app.use(json({ limit: Infinity }))
 
+  let backendTypeDefs: string
+  let localTypeDefs: string
+  let workspaceGqlNamesData: string[]
+  let workspaceGqlFileInfoData: ReturnTypeGetWorkspaceGqlFileInfo
+
+  /** 获取远程schema */
+  backendTypeDefs = await fetchTypeDefs(endpoint.url)
+  /** 获取本地工作区的schema内容 */
+  localTypeDefs = readLocalSchemaTypeDefs({
+    filePath: jsonSettings.patternSchemaRelativePath,
+    workspaceRootPath,
+    connection,
+  })
+  /** 获取工作区所有 gql接口名称，gql接口ast和相关数据 */
+  const { workspaceGqlNames, workspaceGqlFileInfo } =
+    getWorkspaceAllGqlsNameAndData({
+      connection,
+      jsonSettings,
+      workspaceRootPath,
+    })
+
+  workspaceGqlNamesData = workspaceGqlNames
+  workspaceGqlFileInfoData = workspaceGqlFileInfo
+
   app.get('/operations', async (_, res) => {
     try {
-      const backendTypeDefs = await fetchTypeDefs(endpoint.url)
-
-      /** 获取本地工作区的schema内容 */
-      const localTypeDefs = readLocalSchemaTypeDefs({
-        filePath: jsonSettings.patternSchemaRelativePath,
-        workspaceRootPath,
-        connection,
-      })
-      /** 获取工作区所有 gql接口名称，gql接口ast和相关数据 */
-      const { workspaceGqlNames, workspaceGqlFileInfo } =
-        getWorkspaceAllGqlsNameAndData({
-          connection,
-          jsonSettings,
-          workspaceRootPath,
-        })
-
       res.send({
         isAllAddComment: jsonSettings.isAllAddComment,
         typeDefs: backendTypeDefs,
         maxDepth: jsonSettings.maxDepth,
         localTypeDefs: localTypeDefs,
-        workspaceGqlNames,
-        workspaceGqlFileInfo,
+        workspaceGqlNames: workspaceGqlNamesData,
+        workspaceGqlFileInfo: workspaceGqlFileInfoData,
         port,
         IpAddress: getIpAddress(),
       })
@@ -70,9 +79,9 @@ export async function startDocServer(params: DocServerParams) {
   app.get('/reload/operations', async (_, res) => {
     try {
       // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
-      const backendTypeDefs = await fetchTypeDefs(endpoint.url)
+      backendTypeDefs = await fetchTypeDefs(endpoint.url)
       /** 这里再次获取本地工作区的schema内容 */
-      const newLocalTypeDefs = readLocalSchemaTypeDefs({
+      localTypeDefs = readLocalSchemaTypeDefs({
         filePath: jsonSettings.patternSchemaRelativePath,
         workspaceRootPath,
         connection,
@@ -87,13 +96,16 @@ export async function startDocServer(params: DocServerParams) {
         workspaceRootPath,
       })
 
+      workspaceGqlNamesData = newWorkspaceGqlNames
+      workspaceGqlFileInfoData = newWorkspaceGqlFileInfo
+
       res.send({
         isAllAddComment: jsonSettings.isAllAddComment,
         typeDefs: backendTypeDefs,
         maxDepth: jsonSettings.maxDepth,
-        localTypeDefs: newLocalTypeDefs,
-        workspaceGqlNames: newWorkspaceGqlNames,
-        workspaceGqlFileInfo: newWorkspaceGqlFileInfo,
+        localTypeDefs: localTypeDefs,
+        workspaceGqlNames: workspaceGqlNamesData,
+        workspaceGqlFileInfo: workspaceGqlFileInfoData,
         port,
         IpAddress: getIpAddress(),
       })
