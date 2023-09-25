@@ -53,7 +53,6 @@ export async function startDocServer(params: DocServerParams) {
         })
 
       res.send({
-        isNeedGrouped: jsonSettings.isNeedGrouped,
         isAllAddComment: jsonSettings.isAllAddComment,
         typeDefs: backendTypeDefs,
         maxDepth: jsonSettings.maxDepth,
@@ -89,7 +88,6 @@ export async function startDocServer(params: DocServerParams) {
       })
 
       res.send({
-        isNeedGrouped: jsonSettings.isNeedGrouped,
         isAllAddComment: jsonSettings.isAllAddComment,
         typeDefs: backendTypeDefs,
         maxDepth: jsonSettings.maxDepth,

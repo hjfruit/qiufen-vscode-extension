@@ -3,6 +3,7 @@ import { message } from 'antd'
 import { buildSchema, lexicographicSortSchema, printSchema } from 'graphql'
 import create from 'zustand'
 
+import type { OperationNodesForFieldAstBySchemaReturnType } from '@fruits-chain/qiufen-pro-helpers'
 import type {
   SelectionNode,
   EnumValueNode,
@@ -96,14 +97,15 @@ const useBearStore = create<BearState>(set => {
           .then(response => response.json())
           .then(data => {
             const schema = buildSchema(data.typeDefs)
-            const isNeedGrouped = data.isNeedGrouped
             const {
+              isNeededGrouped,
               operationNameGroupedFromBackendObj,
               operationNamesFromGroupOptions,
-            } = getOperationNameGroupedFromBackendInfo(isNeedGrouped, schema)
+            } = getOperationNameGroupedFromBackendInfo(schema)
 
             set({
               ...data,
+              isNeededGrouped,
               operationNameGroupedFromBackendObj,
               operationNamesFromGroupOptions,
               backendTypeDefsGrouped: data.typeDefs,
@@ -126,14 +128,15 @@ const useBearStore = create<BearState>(set => {
           .then(response => response.json())
           .then(data => {
             const schema = buildSchema(data.typeDefs)
-            const isNeedGrouped = data.isNeedGrouped
             const {
+              isNeededGrouped,
               operationNameGroupedFromBackendObj,
               operationNamesFromGroupOptions,
-            } = getOperationNameGroupedFromBackendInfo(isNeedGrouped, schema)
+            } = getOperationNameGroupedFromBackendInfo(schema)
 
             set({
               ...data,
+              isNeededGrouped,
               operationNameGroupedFromBackendObj,
               operationNamesFromGroupOptions,
               backendTypeDefsGrouped: data.typeDefs,
@@ -153,10 +156,7 @@ const useBearStore = create<BearState>(set => {
 })
 
 /** 获取来自后端分组下拉选项，分组接口数据 */
-function getOperationNameGroupedFromBackendInfo(
-  isNeedGrouped: boolean,
-  schema: GraphQLSchema,
-) {
+function getOperationNameGroupedFromBackendInfo(schema: GraphQLSchema) {
   const operationNamesFromGroupOptions = []
   const result: Record<
     string,
@@ -168,15 +168,17 @@ function getOperationNameGroupedFromBackendInfo(
     OTHER: [],
   }
 
-  if (isNeedGrouped) {
-    const operationAsts = getOperationNodesForFieldAstBySchema(schema)
+  const operationAsts = getOperationNodesForFieldAstBySchema(schema)
+  /** 这里先判断出该schema能不能进行分组 */
+  const isNeededGrouped = isNeededGroupFn(operationAsts[0])
+
+  if (isNeededGrouped) {
     operationAsts.forEach(operationAst => {
       const selectionItem = operationAst.operationDefNodeAst.selectionSet
         .selections[0] as SelectionNode & {
         nameValue: string
       }
       const directives = selectionItem.directives
-
       const foundDirective = directives?.find(
         itm => itm?.name?.value === 'join__field',
       )
@@ -215,9 +217,25 @@ function getOperationNameGroupedFromBackendInfo(
   }
 
   return {
+    isNeededGrouped,
     operationNamesFromGroupOptions,
     operationNameGroupedFromBackendObj: result,
   }
+}
+
+function isNeededGroupFn(
+  firstOperationAst: OperationNodesForFieldAstBySchemaReturnType,
+) {
+  const firstOperationSelectionItem = firstOperationAst.operationDefNodeAst
+    .selectionSet.selections[0] as SelectionNode & {
+    nameValue: string
+  }
+  const firstDirectives = firstOperationSelectionItem.directives
+  const foundFirstDirectives = firstDirectives?.find(
+    itm => itm?.name?.value === 'join__field',
+  )
+
+  return !!foundFirstDirectives
 }
 
 export default useBearStore
