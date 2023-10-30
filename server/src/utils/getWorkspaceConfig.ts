@@ -15,6 +15,7 @@ export type JsonSettingsType = {
   maxDepth: number
   patternRelativePath: string
   patternSchemaRelativePath: string
+  openGrouped: boolean
 }
 
 type GetConfigurationParams = {
@@ -42,6 +43,7 @@ export async function getConfiguration(params: GetConfigurationParams) {
   let qiufenConfig: GraphqlKitConfig | undefined
   let port: number | undefined
   let url: string | undefined
+  let openGrouped: boolean | undefined
 
   // 1. 当两种配置文件都存在时，抛出错误
   if (isExistConfigFile && isExistConfigFileOfCjs) {
@@ -60,6 +62,7 @@ export async function getConfiguration(params: GetConfigurationParams) {
     }
     port = qiufenConfig.port || jsonSettingPort
     url = qiufenConfig.endpoint?.url || endpointUrl
+    openGrouped = qiufenConfig.openGrouped || jsonSettings.openGrouped
   }
 
   // 3. 当只存在 .cjs 后缀配置时
@@ -74,12 +77,14 @@ export async function getConfiguration(params: GetConfigurationParams) {
     }
     port = qiufenConfig.port || jsonSettingPort
     url = qiufenConfig.endpoint?.url || endpointUrl
+    openGrouped = qiufenConfig.openGrouped || jsonSettings.openGrouped
   }
 
   // 4. 两种配置都不存在时
   if (!isExistConfigFile && !isExistConfigFileOfCjs) {
     port = jsonSettingPort
     url = endpointUrl
+    openGrouped = jsonSettings.openGrouped
   }
 
   if (!port || !url) {
@@ -95,6 +100,7 @@ export async function getConfiguration(params: GetConfigurationParams) {
     localSchemaFile: qiufenConfig?.localSchemaFile || '',
     schemaPolicy: qiufenConfig?.schemaPolicy || 'remote',
     requestHeaders: qiufenConfig?.requestHeaders || {},
+    openGrouped,
     mock: {
       openAllOperationsMocking:
         qiufenConfig?.mock?.openAllOperationsMocking ||

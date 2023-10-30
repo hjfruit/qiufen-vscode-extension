@@ -74,6 +74,11 @@
           "type": "boolean",
           "default": false,
           "description": "inserting comment"
+        },
+        "graphql-qiufen-pro.openGrouped": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether grouping is required"
         }
       }
     }

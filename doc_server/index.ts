@@ -7,8 +7,10 @@ import cors from 'cors'
 import express from 'express'
 import portscanner from 'portscanner'
 
+import type { GraphqlKitConfig } from '@/client/interface'
 import type { JsonSettingsType } from '@/server/src/utils/getWorkspaceConfig'
 
+import { requestGroupedSdl } from './requestGroupedSdl'
 import getIpAddress from './utils/getIpAddress'
 import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
 import {
@@ -18,7 +20,6 @@ import {
 } from './utils/syncWorkspaceGqls'
 
 import type { ReturnTypeGetWorkspaceGqlFileInfo } from './utils/syncWorkspaceGqls'
-import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { _Connection } from 'vscode-languageserver'
 
 type DocServerParams = {
@@ -29,7 +30,7 @@ type DocServerParams = {
 }
 export async function startDocServer(params: DocServerParams) {
   const { qiufenConfig, jsonSettings, connection, workspaceRootPath } = params
-  const { endpoint, port } = qiufenConfig
+  const { endpoint, port, openGrouped } = qiufenConfig
 
   const app = express()
   app.use(cors())
@@ -40,8 +41,14 @@ export async function startDocServer(params: DocServerParams) {
   let workspaceGqlNamesData: string[]
   let workspaceGqlFileInfoData: ReturnTypeGetWorkspaceGqlFileInfo
 
-  /** 获取远程schema */
-  backendTypeDefs = await fetchTypeDefs(endpoint.url)
+  if (openGrouped) {
+    /** 需要分组 */
+    backendTypeDefs = await requestGroupedSdl(endpoint.url)
+  } else {
+    /** 获取远程schema */
+    backendTypeDefs = await fetchTypeDefs(endpoint.url)
+  }
+
   /** 获取本地工作区的schema内容 */
   localTypeDefs = readLocalSchemaTypeDefs({
     filePath: jsonSettings.patternSchemaRelativePath,
@@ -79,7 +86,12 @@ export async function startDocServer(params: DocServerParams) {
   app.get('/reload/operations', async (_, res) => {
     try {
       // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
-      backendTypeDefs = await fetchTypeDefs(endpoint.url)
+      if (openGrouped) {
+        backendTypeDefs = await requestGroupedSdl(endpoint.url)
+      } else {
+        /** 获取远程schema */
+        backendTypeDefs = await fetchTypeDefs(endpoint.url)
+      }
       /** 这里再次获取本地工作区的schema内容 */
       localTypeDefs = readLocalSchemaTypeDefs({
         filePath: jsonSettings.patternSchemaRelativePath,

@@ -98,14 +98,14 @@ const useBearStore = create<BearState>(set => {
           .then(data => {
             const schema = buildSchema(data.typeDefs)
             const {
-              isNeededGrouped,
+              isNeedGrouped,
               operationNameGroupedFromBackendObj,
               operationNamesFromGroupOptions,
             } = getOperationNameGroupedFromBackendInfo(schema)
 
             set({
               ...data,
-              isNeededGrouped,
+              isNeedGrouped,
               operationNameGroupedFromBackendObj,
               operationNamesFromGroupOptions,
               backendTypeDefsGrouped: data.typeDefs,
@@ -129,14 +129,14 @@ const useBearStore = create<BearState>(set => {
           .then(data => {
             const schema = buildSchema(data.typeDefs)
             const {
-              isNeededGrouped,
+              isNeedGrouped,
               operationNameGroupedFromBackendObj,
               operationNamesFromGroupOptions,
             } = getOperationNameGroupedFromBackendInfo(schema)
 
             set({
               ...data,
-              isNeededGrouped,
+              isNeedGrouped,
               operationNameGroupedFromBackendObj,
               operationNamesFromGroupOptions,
               backendTypeDefsGrouped: data.typeDefs,
@@ -170,9 +170,9 @@ function getOperationNameGroupedFromBackendInfo(schema: GraphQLSchema) {
 
   const operationAsts = getOperationNodesForFieldAstBySchema(schema)
   /** 这里先判断出该schema能不能进行分组 */
-  const isNeededGrouped = isNeededGroupFn(operationAsts[0])
+  const isNeedGrouped = isNeededGroupFn(operationAsts[0])
 
-  if (isNeededGrouped) {
+  if (isNeedGrouped) {
     operationAsts.forEach(operationAst => {
       const selectionItem = operationAst.operationDefNodeAst.selectionSet
         .selections[0] as SelectionNode & {
@@ -217,7 +217,7 @@ function getOperationNameGroupedFromBackendInfo(schema: GraphQLSchema) {
   }
 
   return {
-    isNeededGrouped,
+    isNeedGrouped,
     operationNamesFromGroupOptions,
     operationNameGroupedFromBackendObj: result,
   }

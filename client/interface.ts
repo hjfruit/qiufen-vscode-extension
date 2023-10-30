@@ -11,6 +11,7 @@ export interface GraphqlKitConfig {
   schemaPolicy?: SchemaPolicy
   /** mock config */
   mock?: MockConfig
+  openGrouped?: boolean
 }
 
 interface ServiceConfig {
