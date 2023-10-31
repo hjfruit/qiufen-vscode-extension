@@ -17,6 +17,7 @@ export default defineConfig({
     outDir: '../dist-page-view',
     assetsDir: 'assets',
     minify: 'terser', // 混淆器
+    emptyOutDir: true,
   },
   // server: {
   //   proxy: {

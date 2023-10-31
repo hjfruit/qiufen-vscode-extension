@@ -16,6 +16,7 @@ export type JsonSettingsType = {
   patternRelativePath: string
   patternSchemaRelativePath: string
   openGrouped: boolean
+  qiufenConfigRelativePath: string
 }
 
 type GetConfigurationParams = {
@@ -29,11 +30,20 @@ export async function getConfiguration(params: GetConfigurationParams) {
   const jsonSettings = (await connection.workspace.getConfiguration(
     'graphql-qiufen-pro',
   )) as unknown as JsonSettingsType
-  const { port: jsonSettingPort, endpointUrl } = jsonSettings
+  const {
+    port: jsonSettingPort,
+    endpointUrl,
+    qiufenConfigRelativePath,
+  } = jsonSettings
 
-  const qiufenConfigPath = path.join(workspaceRootPath!, 'qiufen.config.js')
+  const qiufenConfigPath = path.join(
+    workspaceRootPath!,
+    qiufenConfigRelativePath,
+    'qiufen.config.js',
+  )
   const qiufenConfigPathOfCjs = path.join(
     workspaceRootPath!,
+    qiufenConfigRelativePath,
     'qiufen.config.cjs',
   )
 

@@ -48,37 +48,42 @@
         "graphql-qiufen-pro.endpointUrl": {
           "type": "string",
           "default": "",
-          "description": "gets the remote address of the schema"
+          "description": "The remote address of the schema"
         },
         "graphql-qiufen-pro.port": {
           "type": "number",
           "default": 6700,
-          "description": "backend service port"
+          "description": "Custom service port"
         },
         "graphql-qiufen-pro.patternRelativePath": {
           "type": "string",
           "default": "src/graphql/operations",
-          "description": "pattern relative path of operations"
+          "description": "Pattern relative path of operations"
         },
         "graphql-qiufen-pro.patternSchemaRelativePath": {
           "type": "string",
           "default": "src/graphql/generated/schema.graphql",
-          "description": "pattern relative path of schema"
+          "description": "Pattern relative path of schema"
         },
         "graphql-qiufen-pro.maxDepth": {
           "type": "number",
           "default": 2,
-          "description": "fields table tree show depth"
+          "description": "Fields table tree show depth"
         },
         "graphql-qiufen-pro.isAllAddComment": {
           "type": "boolean",
           "default": false,
-          "description": "inserting comment"
+          "description": "Inserting comment"
         },
         "graphql-qiufen-pro.openGrouped": {
           "type": "boolean",
           "default": false,
           "description": "Whether grouping is required"
+        },
+        "graphql-qiufen-pro.qiufenConfigRelativePath": {
+          "type": "string",
+          "default": "./",
+          "description": "Qiufen.config's relative path based on the root directory"
         }
       }
     }
