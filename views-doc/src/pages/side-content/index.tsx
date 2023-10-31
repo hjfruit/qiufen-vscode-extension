@@ -33,42 +33,51 @@ const SideContent: FC<IProps> = () => {
     captureMessage()
   }, [captureMessage])
 
-  const operationObjList = useMemo(() => {
+  const operationNodesForFieldAstBySchema = useMemo(() => {
     let result: OperationNodesForFieldAstBySchemaReturnType[] = []
+
     if (typeDefs) {
       const schema = buildSchema(typeDefs)
-
-      if (
-        isNeedGrouped &&
-        !!identityValue &&
-        operationNameGroupedFromBackendObj[identityValue]
-      ) {
-        result = getOperationNodesForFieldAstBySchema(schema)?.filter(item => {
-          const sameKeyItem = operationNameGroupedFromBackendObj[
-            identityValue
-          ].find(
-            itm =>
-              `${itm.operation}${itm.operationName}` ===
-              `${item.operationDefNodeAst.operation}${
-                (
-                  item.operationDefNodeAst.selectionSet
-                    .selections[0] as SelectionNode & { nameValue: string }
-                ).nameValue
-              }`,
-          )
-
-          return !!sameKeyItem
-        })
-      } else {
-        result = getOperationNodesForFieldAstBySchema(schema)
-      }
+      result = getOperationNodesForFieldAstBySchema(schema)
     }
+
+    return result
+  }, [typeDefs])
+
+  const operationObjList = useMemo(() => {
+    let result: OperationNodesForFieldAstBySchemaReturnType[] = []
+
+    if (
+      isNeedGrouped &&
+      !!identityValue &&
+      operationNameGroupedFromBackendObj[identityValue]
+    ) {
+      result = operationNodesForFieldAstBySchema?.filter(item => {
+        const sameKeyItem = operationNameGroupedFromBackendObj[
+          identityValue
+        ].find(
+          itm =>
+            `${itm.operation}${itm.operationName}` ===
+            `${item.operationDefNodeAst.operation}${
+              (
+                item.operationDefNodeAst.selectionSet
+                  .selections[0] as SelectionNode & { nameValue: string }
+              ).nameValue
+            }`,
+        )
+
+        return !!sameKeyItem
+      })
+    } else {
+      result = operationNodesForFieldAstBySchema
+    }
+
     return result
   }, [
     identityValue,
     isNeedGrouped,
     operationNameGroupedFromBackendObj,
-    typeDefs,
+    operationNodesForFieldAstBySchema,
   ])
 
   const handleReload = useMemoizedFn(async () => {
@@ -97,12 +106,10 @@ const SideContent: FC<IProps> = () => {
     }
   }, [setState])
 
-  const firstOperationKey = useMemo(() => {
-    return operationObjList.length
-      ? operationObjList[0]?.operationDefNodeAst?.operation +
-          operationObjList[0]?.operationDefNodeAst?.name?.value
-      : ''
-  }, [operationObjList])
+  const firstOperationKey = operationObjList.length
+    ? operationObjList[0]?.operationDefNodeAst?.operation +
+      operationObjList[0]?.operationDefNodeAst?.name?.value
+    : ''
 
   return (
     <Spin spinning={!operationObjList?.length || loading}>

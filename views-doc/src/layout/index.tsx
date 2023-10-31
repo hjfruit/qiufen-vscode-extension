@@ -4,14 +4,13 @@ import {
   HomeOutlined,
   FileTwoTone,
 } from '@ant-design/icons'
-import { Select } from 'antd'
 import classnames from 'classnames'
 import React, { useLayoutEffect, useState } from 'react'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 
 import logo from '@/assets/images/logo.png'
-import useBearStore from '@/stores'
 
+import GroupSelection from './components/group-seletion'
 import styles from './index.module.less'
 
 import type { FC } from 'react'
@@ -31,16 +30,8 @@ const KEY_MAP: Record<string, SideBarIconKey> = {
 }
 
 const Layout: FC<IProps> = () => {
-  const navigate = useNavigate()
   const location = useLocation()
   const key = location.pathname.split('/')[1]
-  const {
-    isNeedGrouped,
-    operationNamesFromGroupOptions,
-    identityValue,
-    operationNameGroupedFromBackendObj,
-    setState,
-  } = useBearStore(state => state)
 
   const [sideBarActiveKey, setSideBarActiveKey] = useState(KEY_MAP[key])
   const [focusKey, setFocusKey] = useState(KEY_MAP[key])
@@ -54,21 +45,7 @@ const Layout: FC<IProps> = () => {
       <div className={styles.topBar}>
         <img src={logo} alt="qiufen logo" className={styles.logo} />
         <p className={styles.title}>QIUFEN</p>
-        {isNeedGrouped && (
-          <Select
-            placeholder="请选择项目组名称"
-            allowClear
-            value={identityValue}
-            onChange={val => {
-              setState({ identityValue: val })
-              navigate(
-                `/docs/${operationNameGroupedFromBackendObj[val][0].operation}${operationNameGroupedFromBackendObj[val][0].operationName}`,
-              )
-            }}
-            className={styles.selector}
-            options={operationNamesFromGroupOptions || []}
-          />
-        )}
+        <GroupSelection />
       </div>
       <div className={styles.section}>
         <div className={styles.sideBar}>
