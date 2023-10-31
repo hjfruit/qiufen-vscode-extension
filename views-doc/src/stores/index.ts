@@ -165,7 +165,7 @@ function getOperationNameGroupedFromBackendInfo(schema: GraphQLSchema) {
       operationName: string
     }[]
   > = {
-    OTHER: [],
+    All: [],
   }
 
   const operationAsts = getOperationNodesForFieldAstBySchema(schema)
@@ -195,15 +195,15 @@ function getOperationNameGroupedFromBackendInfo(schema: GraphQLSchema) {
             operation: operationAst.operationDefNodeAst.operation,
           },
         ]
-      } else {
-        result['OTHER'] = [
-          ...result['OTHER'],
-          {
-            operationName: selectionItem.nameValue,
-            operation: operationAst.operationDefNodeAst.operation,
-          },
-        ]
       }
+
+      result['All'] = [
+        ...result['All'],
+        {
+          operationName: selectionItem.nameValue,
+          operation: operationAst.operationDefNodeAst.operation,
+        },
+      ]
     })
 
     for (const key in result) {
