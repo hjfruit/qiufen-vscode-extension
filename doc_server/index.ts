@@ -84,6 +84,26 @@ export async function startDocServer(params: DocServerParams) {
     }
   })
 
+  app.get('/listen', async (_, res) => {
+    let lastSdl = ''
+    try {
+      // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
+      if (openGrouped) {
+        lastSdl = await requestGroupedSdl(endpoint.url)
+      } else {
+        /** 获取远程schema */
+        lastSdl = await fetchTypeDefs(endpoint.url)
+      }
+
+      res.send({
+        lastSdl,
+        typeDefs: backendTypeDefs,
+      })
+    } catch (error) {
+      res.status(403).send({ error })
+    }
+  })
+
   app.get('/reload/operations', async (_, res) => {
     try {
       // 这里再次获取后端sdl，是因为web网页在reload时要及时更新

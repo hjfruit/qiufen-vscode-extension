@@ -11,6 +11,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import logo from '@/assets/images/logo.png'
 
 import GroupSelection from './components/group-seletion'
+import ListenSchemaUpdate from './components/listen-schema-update'
 import styles from './index.module.less'
 
 import type { FC } from 'react'
@@ -46,6 +47,7 @@ const Layout: FC<IProps> = () => {
         <img src={logo} alt="qiufen logo" className={styles.logo} />
         <p className={styles.title}>QIUFEN</p>
         <GroupSelection />
+        <ListenSchemaUpdate />
       </div>
       <div className={styles.section}>
         <div className={styles.sideBar}>

@@ -92,6 +92,7 @@ const SideContent: FC<IProps> = () => {
           }, 20000)
         }),
       ])
+      setState({ hasUpdateInfo: false })
     } catch (error) {
       message.error('网络异常')
     }

@@ -28,6 +28,8 @@ export type WorkspaceGqlFileInfoType = {
   content: string
 }
 interface MessageEvent {
+  hasUpdateInfo: boolean
+  lastSdl: string
   schemaUrl: string
   isNeedGrouped: boolean
   isAllAddComment: boolean
@@ -57,6 +59,10 @@ interface BearState extends MessageEvent {
     typeDefs: string
     localTypeDefs: string
   }>
+  fetchLastTypeDefs: () => Promise<{
+    typeDefs: string
+    lastSdl: string
+  }>
   captureMessage: () => Promise<boolean>
   reloadOperations: () => Promise<boolean>
   setState: SetState<BearState>
@@ -64,6 +70,8 @@ interface BearState extends MessageEvent {
 
 const useBearStore = create<BearState>(set => {
   return {
+    hasUpdateInfo: false,
+    lastSdl: '',
     schemaUrl: '',
     isNeedGrouped: false,
     identityValue: undefined,
@@ -81,6 +89,18 @@ const useBearStore = create<BearState>(set => {
     workspaceGqlFileInfo: [],
     isDisplaySidebar: true,
     operationNamesFromGroupOptions: [],
+    fetchLastTypeDefs() {
+      return new Promise(resolve => {
+        fetch(`/listen`)
+          .then(response => response.json())
+          .then(data => {
+            resolve({
+              typeDefs: data.typeDefs,
+              lastSdl: data.lastSdl,
+            })
+          })
+      })
+    },
     fetchRemoteTypeDefs() {
       return new Promise(resolve => {
         fetch(`/operations`)

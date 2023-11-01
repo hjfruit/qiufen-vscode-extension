@@ -46,9 +46,7 @@ const GroupSelection: FC<IProps> = () => {
         className={styles.selector}
         options={operationNamesFromGroupOptions || []}
       />
-      <Tooltip
-        placement="topLeft"
-        title={<span>Backend Url（'ctrl + click'）</span>}>
+      <Tooltip title={<span>Backend Url（'ctrl + click'）</span>}>
         <a href={schemaUrl} onClick={handleLinkClick} style={{ color: '#fff' }}>
           {schemaUrl}
         </a>
