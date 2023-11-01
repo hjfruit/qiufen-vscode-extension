@@ -28,6 +28,7 @@ export type WorkspaceGqlFileInfoType = {
   content: string
 }
 interface MessageEvent {
+  schemaUrl: string
   isNeedGrouped: boolean
   isAllAddComment: boolean
   IpAddress: string
@@ -63,6 +64,7 @@ interface BearState extends MessageEvent {
 
 const useBearStore = create<BearState>(set => {
   return {
+    schemaUrl: '',
     isNeedGrouped: false,
     identityValue: undefined,
     operationNameGroupedFromBackendObj: {},

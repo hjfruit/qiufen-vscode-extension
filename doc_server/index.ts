@@ -69,6 +69,7 @@ export async function startDocServer(params: DocServerParams) {
   app.get('/operations', async (_, res) => {
     try {
       res.send({
+        schemaUrl: endpoint.url,
         isAllAddComment: jsonSettings.isAllAddComment,
         typeDefs: backendTypeDefs,
         maxDepth: jsonSettings.maxDepth,
@@ -112,6 +113,7 @@ export async function startDocServer(params: DocServerParams) {
       workspaceGqlFileInfoData = newWorkspaceGqlFileInfo
 
       res.send({
+        schemaUrl: endpoint.url,
         isAllAddComment: jsonSettings.isAllAddComment,
         typeDefs: backendTypeDefs,
         maxDepth: jsonSettings.maxDepth,
