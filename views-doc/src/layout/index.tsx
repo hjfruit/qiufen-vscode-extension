@@ -33,6 +33,7 @@ const KEY_MAP: Record<string, SideBarIconKey> = {
 const Layout: FC<IProps> = () => {
   const location = useLocation()
   const key = location.pathname.split('/')[1]
+  const routeId = location.pathname.split('/')[2]
 
   const [sideBarActiveKey, setSideBarActiveKey] = useState(KEY_MAP[key])
   const [focusKey, setFocusKey] = useState(KEY_MAP[key])
@@ -51,7 +52,7 @@ const Layout: FC<IProps> = () => {
       </div>
       <div className={styles.section}>
         <div className={styles.sideBar}>
-          <Link to="/docs">
+          <Link to={routeId ? `/docs/${routeId}` : '/docs'}>
             <div
               onMouseEnter={() => {
                 setFocusKey(SideBarIconKey.DOCS)

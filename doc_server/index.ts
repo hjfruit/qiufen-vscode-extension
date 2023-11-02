@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 import * as path from 'path'
 
 import { fetchTypeDefs } from '@fruits-chain/qiufen-pro-helpers'

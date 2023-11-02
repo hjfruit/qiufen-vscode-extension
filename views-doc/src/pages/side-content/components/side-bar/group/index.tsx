@@ -4,7 +4,7 @@ import classnames from 'classnames'
 import ClipboardJS from 'clipboard'
 import VirtualList from 'rc-virtual-list'
 import React, { useEffect, useRef, memo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
 import useBearStore from '@/stores'
 import { printBatchOperations } from '@/utils/printBatchOperations'
@@ -37,6 +37,9 @@ const OperationItem = ({
   isMoreExist: boolean
   switchBothZhEn: boolean
 }) => {
+  const { id: routeId } = useParams<'id'>()
+  const groupedId = routeId?.split('&')?.[1] || ''
+
   useEffect(() => {
     // 一下是不通过虚拟列表实现的时候滚动条滚到当前激活的item位置
     if (!isControllingExecuted && !isMakeVirtual) {
@@ -68,7 +71,14 @@ const OperationItem = ({
 
   return (
     <div>
-      <Link to={`/docs/${operation.operation + operation.name?.value}`}>
+      <Link
+        to={
+          groupedId
+            ? `/docs/${
+                operation.operation + operation.name?.value
+              }&${groupedId}`
+            : `/docs/${operation.operation + operation.name?.value}`
+        }>
         <div
           id={active ? 'activeItem' : ''}
           className={classnames(styles.operationItem, {

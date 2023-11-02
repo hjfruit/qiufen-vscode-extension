@@ -23,12 +23,12 @@ import type { JsonSettingsType } from './utils/getWorkspaceConfig'
 import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { Server } from 'http'
 
+let docServer: Server
+let mockServer: Server
+
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
 documents.listen(connection)
-
-let docServer: Server
-let mockServer: Server
 
 connection.onInitialize(() => {
   return {
@@ -79,9 +79,16 @@ connection.onInitialized(async () => {
 
     return Promise.resolve(serverPort)
   })
-  connection.onRequest(Doc_Close, async () => {
-    docServer?.close()
-    return Promise.resolve(true)
+  connection.onRequest(Doc_Close, () => {
+    return new Promise(resolve => {
+      docServer?.close(error => {
+        if (error) {
+          resolve(false)
+        } else {
+          resolve(true)
+        }
+      })
+    })
   })
 
   connection.onRequest(Mock_Start, async () => {

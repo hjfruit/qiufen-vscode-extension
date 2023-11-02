@@ -108,7 +108,11 @@ export function activate(context: ExtensionContext) {
         'Qiufen Closed',
       )
 
-      await client.sendRequest(Doc_Close)
+      const resFlag = await client.sendRequest(Doc_Close)
+
+      if (!resFlag) {
+        window.showErrorMessage('文档服务关闭失败！')
+      }
 
       updateStatusBarItem(
         GraphqlQiufenProStartDocCommandId,

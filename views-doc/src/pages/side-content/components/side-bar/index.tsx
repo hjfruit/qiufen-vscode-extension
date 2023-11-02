@@ -26,11 +26,13 @@ import type { FC } from 'react'
 export interface IProps {
   operationsDefNodeObjList: OperationNodesForFieldAstBySchemaReturnType[]
   activeItemKey: string
+  groupedId: string
   handleReload: () => void
 }
 
 const DocSidebar: FC<IProps> = ({
   activeItemKey,
+  groupedId,
   handleReload,
   operationsDefNodeObjList,
 }) => {
@@ -63,10 +65,12 @@ const DocSidebar: FC<IProps> = ({
   const initPageRef = useRef(false)
   useEffect(() => {
     if (activeItemKey && !initPageRef.current) {
-      navigate(`/docs/${activeItemKey}`)
+      groupedId
+        ? navigate(`/docs/${activeItemKey}&${groupedId}`)
+        : navigate(`/docs/${activeItemKey}`)
       initPageRef.current = true
     }
-  }, [activeItemKey, navigate])
+  }, [activeItemKey, groupedId, navigate])
 
   const contentJSX = useMemo(() => {
     const newKeyword = keyword.trim()

@@ -16,7 +16,9 @@ import type { FC } from 'react'
 interface IProps {}
 
 const SideContent: FC<IProps> = () => {
-  const { id } = useParams<'id'>()
+  const { id: routeId } = useParams<'id'>()
+  const [id, groupedId] = routeId?.split('&') || []
+
   const {
     captureMessage,
     reloadOperations,
@@ -117,6 +119,7 @@ const SideContent: FC<IProps> = () => {
       <div style={{ display: 'flex', flexDirection: 'row' }}>
         <div style={{ display: isDisplaySidebar ? 'block' : 'none' }}>
           <DocSidebar
+            groupedId={identityValue || groupedId}
             handleReload={handleReload}
             activeItemKey={id || firstOperationKey}
             operationsDefNodeObjList={operationObjList}

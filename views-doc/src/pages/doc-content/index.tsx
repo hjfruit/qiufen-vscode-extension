@@ -15,7 +15,9 @@ import type { FC } from 'react'
 interface IProps {}
 
 const DocContent: FC<IProps> = () => {
-  const { id } = useParams<'id'>()
+  const { id: routeId } = useParams<'id'>()
+  const [id] = routeId?.split('&') || []
+
   const { typeDefs } = useBearStore(state => state)
 
   const operationObjList = useMemo(() => {
