@@ -9,9 +9,9 @@ import portscanner from 'portscanner'
 import type { GraphqlKitConfig } from '@/client/interface'
 import type { JsonSettingsType } from '@/server/src/utils/getWorkspaceConfig'
 
-import { requestGroupedSdl } from './requestGroupedSdl'
 import getIpAddress from './utils/getIpAddress'
 import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
+import { requestGroupedSdl } from './utils/requestGroupedSdl'
 import {
   getWorkspaceGqls,
   fillOperationInWorkspace,
