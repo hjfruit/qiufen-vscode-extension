@@ -81,6 +81,7 @@ connection.onInitialized(async () => {
   })
   connection.onRequest(Doc_Close, () => {
     return new Promise(resolve => {
+      docServer.closeAllConnections()
       docServer?.close(error => {
         if (error) {
           resolve(false)
@@ -123,9 +124,17 @@ connection.onInitialized(async () => {
 
     return Promise.resolve(true)
   })
-  connection.onRequest(Mock_Close, async () => {
-    await mockServer?.close()
-    return Promise.resolve(true)
+  connection.onRequest(Mock_Close, () => {
+    return new Promise(resolve => {
+      mockServer.closeAllConnections()
+      mockServer?.close(error => {
+        if (error) {
+          resolve(false)
+        } else {
+          resolve(true)
+        }
+      })
+    })
   })
 })
 
