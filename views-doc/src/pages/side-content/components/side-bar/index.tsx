@@ -174,6 +174,67 @@ const DocSidebar: FC<IProps> = ({
     }
   }, [activeItemKey, activeKey, switchBothZhEn, groupedOperations, keyword])
 
+  const isStorageValueRef = useRef(true)
+  /** 用于记录搜索输入框历史记录到session里面 */
+  useEffect(() => {
+    const searchKeywords = sessionStorage.getItem('searchKeywords') ?? ''
+    const timeoutId = setTimeout(() => {
+      if (keyword && isStorageValueRef.current) {
+        sessionStorage.setItem(
+          'searchKeywords',
+          searchKeywords ? searchKeywords + '-' + keyword : keyword,
+        )
+      }
+    }, 1000) // 设置防抖延迟时间
+
+    return () => {
+      clearTimeout(timeoutId) // 清除之前的定时器
+    }
+  }, [keyword])
+
+  const inputFocusRef = useRef(false)
+  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = e => {
+    const searchKeywords = sessionStorage.getItem('searchKeywords') ?? ''
+    const searchKeywordsArr = searchKeywords.split('-') || []
+    const length = searchKeywordsArr.length
+    isStorageValueRef.current = true
+
+    if (e.key === 'ArrowUp') {
+      isStorageValueRef.current = false
+
+      //  处理上键按下时的逻辑
+      const startingIndex = !keyword
+        ? length - 1
+        : searchKeywordsArr.findIndex(val => val === keyword) - 1
+
+      let currentKeyword = ''
+      if (startingIndex < 0) {
+        currentKeyword = searchKeywordsArr[0]
+      } else {
+        currentKeyword = searchKeywordsArr[startingIndex]
+      }
+
+      setKeyword(currentKeyword)
+    } else if (e.key === 'ArrowDown') {
+      isStorageValueRef.current = false
+
+      // 处理下键按下时的逻辑
+      const startingIndex =
+        searchKeywordsArr.findIndex(val => val === keyword) + 1
+
+      let currentKeyword = ''
+      if (startingIndex > length - 1) {
+        currentKeyword = searchKeywordsArr[length - 1]
+      } else if (!keyword) {
+        currentKeyword = ''
+      } else {
+        currentKeyword = searchKeywordsArr[startingIndex]
+      }
+
+      setKeyword(currentKeyword)
+    }
+  }
+
   return (
     <>
       <div className={styles.wrapper_search}>
@@ -181,15 +242,18 @@ const DocSidebar: FC<IProps> = ({
           className={styles.search}
           onFocus={() => {
             setIsFocus(true)
+            inputFocusRef.current = true
           }}
+          onKeyDown={handleKeyDown}
           onBlur={() => {
             setIsFocus(false)
+            inputFocusRef.current = false
           }}
           suffix={
             <SearchOutlined className={isFocus ? styles.icon_color : ''} />
           }
           size="large"
-          placeholder="Search by group/desc/name/type"
+          placeholder="Search by desc/name/type (↑↓ for history)"
           onChange={evt => {
             setKeyword(evt.target.value)
           }}
