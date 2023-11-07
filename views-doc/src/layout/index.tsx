@@ -12,6 +12,7 @@ import logo from '@/assets/images/logo.png'
 
 import GroupSelection from './components/group-seletion'
 import ListenSchemaUpdate from './components/listen-schema-update'
+import TagList from './components/tag-list'
 import styles from './index.module.less'
 
 import type { FC } from 'react'
@@ -49,6 +50,7 @@ const Layout: FC<IProps> = () => {
         <p className={styles.title}>QIUFEN</p>
         <GroupSelection />
         <ListenSchemaUpdate />
+        <TagList />
       </div>
       <div className={styles.section}>
         <div className={styles.sideBar}>

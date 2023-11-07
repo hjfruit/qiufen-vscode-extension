@@ -7,6 +7,7 @@ import React, { useEffect, useRef, memo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import useBearStore from '@/stores'
+import { useTagsStore } from '@/stores/persist'
 import { printBatchOperations } from '@/utils/printBatchOperations'
 
 import styles from './index.module.less'
@@ -69,9 +70,29 @@ const OperationItem = ({
     }
   }, [isMakeVirtual])
 
+  const { addATags } = useTagsStore()
+
   return (
     <div>
       <Link
+        onClick={() => {
+          const routePath = groupedId
+            ? `/docs/${
+                operation.operation + operation.name?.value
+              }&${groupedId}`
+            : `/docs/${operation.operation + operation.name?.value}`
+
+          const operationZhCn =
+            getOperationNameValue(operation.operationDefinitionDescription) ||
+            ''
+
+          addATags({
+            type: operation.operation,
+            operationZhCn: operationZhCn,
+            operation: operation.name?.value ?? '',
+            routePath,
+          })
+        }}
         to={
           groupedId
             ? `/docs/${
