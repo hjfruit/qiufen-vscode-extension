@@ -11,6 +11,7 @@ import { useTagsStore } from '@/stores/persist'
 import { printBatchOperations } from '@/utils/printBatchOperations'
 
 import styles from './index.module.less'
+import { getDistanceToAncestor, isElementInViewport } from './utils'
 
 import type { OperationDefinitionNodeGroupType } from '@fruits-chain/qiufen-pro-helpers'
 import type { ListRef } from 'rc-virtual-list'
@@ -18,9 +19,6 @@ import type { FC } from 'react'
 
 // 分组大小
 const groupCount = 35
-
-// 控制滚动条滚动那部分代码执行一次
-let isControllingExecuted = false
 
 const OperationItem = ({
   operation,
@@ -38,91 +36,80 @@ const OperationItem = ({
   isMoreExist: boolean
   switchBothZhEn: boolean
 }) => {
+  const { addATags } = useTagsStore()
   const { id: routeId } = useParams<'id'>()
   const groupedId = routeId?.split('&')?.[1] || ''
 
   useEffect(() => {
+    // 滚动条归属的盒子
+    const sidebarContent = document.querySelector(
+      '#sidebarContent',
+    ) as HTMLDivElement
+
     // 一下是不通过虚拟列表实现的时候滚动条滚到当前激活的item位置
-    if (!isControllingExecuted && !isMakeVirtual) {
-      // 找到当前被激活的分类标题
-      const antCollapseContentActive = document.querySelector(
-        '.ant-collapse-content-active',
-      ) as HTMLDivElement
+    if (active) {
       // 当前激活的item
-      const activeItm = document.querySelector('#activeItem') as HTMLDivElement
-      // 滚动条归属的盒子
-      const sidebarContent = document.querySelector(
-        '#sidebarContent',
+      const activeItm = document.querySelector(
+        `#${operation.operation + operation.name?.value}`,
       ) as HTMLDivElement
 
-      // 将滚动条滚到当前被激活的分类标题的位置
-      sidebarContent?.scrollTo({
-        top: Math.max(
-          0,
-          activeItm?.offsetTop + antCollapseContentActive?.offsetTop - 200,
-        ),
+      requestAnimationFrame(() => {
+        const isInViewRange = isElementInViewport(activeItm, sidebarContent)
+        const topDistance = getDistanceToAncestor(activeItm, sidebarContent)
+
+        if (!isInViewRange) {
+          // 将滚动条滚到当前被激活的分类标题的位置
+          sidebarContent?.scrollTo({
+            top: Math.max(0, topDistance - 300),
+          })
+        }
       })
-      isControllingExecuted = true
     }
-
-    return () => {
-      isControllingExecuted = false
-    }
-  }, [isMakeVirtual])
-
-  const { addATags } = useTagsStore()
+  }, [active])
 
   return (
-    <div>
-      <Link
-        onClick={() => {
-          const routePath = groupedId
-            ? `/docs/${
-                operation.operation + operation.name?.value
-              }&${groupedId}`
-            : `/docs/${operation.operation + operation.name?.value}`
+    <Link
+      onClick={() => {
+        const routePath = groupedId
+          ? `/docs/${operation.operation + operation.name?.value}&${groupedId}`
+          : `/docs/${operation.operation + operation.name?.value}`
 
-          const operationZhCn =
-            getOperationNameValue(operation.operationDefinitionDescription) ||
-            ''
+        const operationZhCn =
+          getOperationNameValue(operation.operationDefinitionDescription) || ''
 
-          addATags({
-            type: operation.operation,
-            operationZhCn: operationZhCn,
-            operation: operation.name?.value ?? '',
-            routePath,
-          })
-        }}
-        to={
-          groupedId
-            ? `/docs/${
-                operation.operation + operation.name?.value
-              }&${groupedId}`
-            : `/docs/${operation.operation + operation.name?.value}`
-        }>
-        <div
-          id={active ? 'activeItem' : ''}
-          className={classnames(styles.operationItem, {
-            [styles.active]: active,
-          })}>
-          <Space direction="horizontal">
-            <CheckCircleTwoTone
-              style={{
-                visibility: workspaceGqlNames.includes(operation.name!.value)
-                  ? 'visible'
-                  : 'hidden',
-              }}
-              twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
-            />
-            {switchBothZhEn
-              ? operation.name?.value
-              : getOperationNameValue(
-                  operation.operationDefinitionDescription,
-                ) || operation.name?.value}
-          </Space>
-        </div>
-      </Link>
-    </div>
+        addATags({
+          type: operation.operation,
+          operationZhCn: operationZhCn,
+          operation: operation.name?.value ?? '',
+          routePath,
+        })
+      }}
+      to={
+        groupedId
+          ? `/docs/${operation.operation + operation.name?.value}&${groupedId}`
+          : `/docs/${operation.operation + operation.name?.value}`
+      }>
+      <div
+        id={operation.operation + operation.name?.value}
+        className={classnames(styles.operationItem, {
+          [styles.active]: active,
+        })}>
+        <Space direction="horizontal">
+          <CheckCircleTwoTone
+            style={{
+              visibility: workspaceGqlNames.includes(operation.name!.value)
+                ? 'visible'
+                : 'hidden',
+            }}
+            twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
+          />
+          {switchBothZhEn
+            ? operation.name?.value
+            : getOperationNameValue(operation.operationDefinitionDescription) ||
+              operation.name?.value}
+        </Space>
+      </div>
+    </Link>
   )
 }
 const OperationItemCom = memo(OperationItem)

@@ -30,7 +30,7 @@ const radioOptions = [
 
 const Home: FC<IProps> = () => {
   const navigate = useNavigate()
-  const { fetchRemoteTypeDefs } = useBearStore(state => state)
+  const { fetchLastTypeDefs } = useBearStore(state => state)
   const [loading, setLoading] = useState(false)
   const [radioValue, setRadioValue] = useState(OperationStatusTypeEnum.ALL)
   const [graphqlSdl, setGraphqlSdl] = useState({
@@ -40,10 +40,13 @@ const Home: FC<IProps> = () => {
 
   useMemo(async () => {
     setLoading(true)
-    const res = await fetchRemoteTypeDefs()
-    setGraphqlSdl(res)
+    const res = await fetchLastTypeDefs()
+    setGraphqlSdl({
+      typeDefs: res.lastSdl,
+      localTypeDefs: res.typeDefs,
+    })
     setLoading(false)
-  }, [fetchRemoteTypeDefs])
+  }, [fetchLastTypeDefs])
 
   const changes = useMemo(() => {
     if (graphqlSdl.typeDefs && graphqlSdl.localTypeDefs) {
