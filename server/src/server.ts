@@ -14,13 +14,13 @@ import {
   Mock_Close,
   Mock_Start,
 } from '@/client/eventNames'
+import type { GraphqlKitConfig } from '@/client/interface'
 import { startDocServer } from '@/doc_server'
 import { startMockingServer } from '@/mock_server'
 
 import { getConfiguration } from './utils/getWorkspaceConfig'
 
 import type { JsonSettingsType } from './utils/getWorkspaceConfig'
-import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { Server } from 'http'
 
 let docServer: Server

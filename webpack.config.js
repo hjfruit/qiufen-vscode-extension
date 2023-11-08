@@ -1,7 +1,6 @@
 const path = require('path')
 
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
-const nodeExternals = require('webpack-node-externals')
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -19,7 +18,9 @@ const extensionConfig = {
     filename: '[name].js',
     libraryTarget: 'commonjs-module',
   },
-  externals: [nodeExternals()],
+  externals: {
+    vscode: 'commonjs vscode',
+  },
   resolve: {
     alias: {
       // 这样配置后 @ 可以指向 src 目录
