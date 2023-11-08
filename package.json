@@ -4,7 +4,7 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema Operations Ast",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "1.5.1",
+  "version": "1.5.3",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -91,7 +91,7 @@
   "scripts": {
     "vscode:prepublish": "yarn run package",
     "compile": "webpack",
-    "watch": "webpack --mode development --watch",
+    "watch": "webpack --mode production --devtool hidden-source-map --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
