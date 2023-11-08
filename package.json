@@ -98,6 +98,7 @@
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint --format=pretty views-doc --quiet --ext .js,.ts,.tsx --fix",
     "publish": "vsce publish",
+    "build-manual": "vsce package",
     "login": "vsce login",
     "test": "node ./out/test/runTest.js",
     "prettier": "prettier --config .prettierrc.json --write './**/*.{js,ts,less,css,json}'"
