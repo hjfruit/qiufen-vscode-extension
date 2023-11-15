@@ -82,6 +82,7 @@ export async function startMockingServer(params: StartMockServerParams) {
       const result = await graphql({
         schema: schemaWithMocks,
         source: query,
+        variableValues: operationVariables,
       })
 
       res.send(result)

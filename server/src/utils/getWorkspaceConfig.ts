@@ -72,7 +72,7 @@ export async function getConfiguration(params: GetConfigurationParams) {
     }
     port = qiufenConfig.port || jsonSettingPort
     url = qiufenConfig.endpoint?.url || endpointUrl
-    openGrouped = qiufenConfig.openGrouped || jsonSettings.openGrouped
+    openGrouped = qiufenConfig.openGrouped ?? jsonSettings.openGrouped
   }
 
   // 3. 当只存在 .cjs 后缀配置时
@@ -87,7 +87,7 @@ export async function getConfiguration(params: GetConfigurationParams) {
     }
     port = qiufenConfig.port || jsonSettingPort
     url = qiufenConfig.endpoint?.url || endpointUrl
-    openGrouped = qiufenConfig.openGrouped || jsonSettings.openGrouped
+    openGrouped = qiufenConfig.openGrouped ?? jsonSettings.openGrouped
   }
 
   // 4. 两种配置都不存在时
@@ -113,7 +113,7 @@ export async function getConfiguration(params: GetConfigurationParams) {
     openGrouped,
     mock: {
       openAllOperationsMocking:
-        qiufenConfig?.mock?.openAllOperationsMocking ||
+        qiufenConfig?.mock?.openAllOperationsMocking ??
         defaultQiufenConfig?.mock?.openAllOperationsMocking,
       scalarMap:
         qiufenConfig?.mock?.scalarMap || defaultQiufenConfig?.mock?.scalarMap,
