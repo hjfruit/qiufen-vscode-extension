@@ -9,14 +9,16 @@ query _superSchema {
 }
 `
 
-export const requestGroupedSdl: (url: string) => Promise<string> = (
+export const requestGroupedSdl: (
   url: string,
-) => {
+  authorization?: string,
+) => Promise<string> = (url: string, authorization = '') => {
   return new Promise((resolve, reject) => {
     fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        authorization,
       },
       body: JSON.stringify({ query: sdlGql }),
     })

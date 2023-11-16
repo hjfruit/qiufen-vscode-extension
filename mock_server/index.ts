@@ -25,7 +25,11 @@ export async function startMockingServer(params: StartMockServerParams) {
 
   let typeDefsSDL = ''
   if (qiufenConfigs?.schemaPolicy === 'remote') {
-    typeDefsSDL = await fetchTypeDefs(qiufenConfigs?.endpoint?.url)
+    typeDefsSDL = await fetchTypeDefs(
+      qiufenConfigs?.endpoint?.url,
+      15000,
+      qiufenConfigs?.requestHeaders?.authorization,
+    )
   } else {
     const localSchemaFilePath = path.join(
       workspaceRootPath,

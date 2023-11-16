@@ -223,6 +223,14 @@
     cross-fetch "^4.0.0"
     lodash "^4.17.21"
 
+"@fruits-chain/qiufen-pro-helpers@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.1.4.tgz#9499499ceebf08f2dddb4263f228a53ac0446d64"
+  integrity sha512-XioWkvRDqAPfovj3vqGGYZxNS9kUA6uHFmUENPI2Qqv1UpnIYvBsyz0ez4GbwOeTyf7s9xp8J3CL6fYLAs2x/Q==
+  dependencies:
+    cross-fetch "^4.0.0"
+    lodash "^4.17.21"
+
 "@graphql-tools/merge@^8.4.1":
   version "8.4.2"
   resolved "https://registry.npmjs.org/@graphql-tools/merge/-/merge-8.4.2.tgz#95778bbe26b635e8d2f60ce9856b388f11fe8288"
@@ -4698,11 +4706,6 @@ webpack-merge@^5.7.3:
   dependencies:
     clone-deep "^4.0.1"
     wildcard "^2.0.0"
-
-webpack-node-externals@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/webpack-node-externals/-/webpack-node-externals-3.0.0.tgz#1a3407c158d547a9feb4229a9e3385b7b60c9917"
-  integrity sha512-LnL6Z3GGDPht/AigwRh2dvL9PQPFQ8skEpVrWZXLWBYmqcaojHNN0onvHzie6rq7EWKrrBfPYqNEzTJgiwEQDQ==
 
 webpack-sources@^3.2.3:
   version "3.2.3"

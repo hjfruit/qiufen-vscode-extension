@@ -42,10 +42,17 @@ export async function startDocServer(params: DocServerParams) {
 
   if (openGrouped) {
     /** 需要分组 */
-    backendTypeDefs = await requestGroupedSdl(endpoint.url)
+    backendTypeDefs = await requestGroupedSdl(
+      endpoint.url,
+      qiufenConfig?.requestHeaders?.authorization,
+    )
   } else {
     /** 获取远程schema */
-    backendTypeDefs = await fetchTypeDefs(endpoint.url)
+    backendTypeDefs = await fetchTypeDefs(
+      endpoint.url,
+      15000,
+      qiufenConfig?.requestHeaders?.authorization,
+    )
   }
 
   /** 获取本地工作区的schema内容 */
