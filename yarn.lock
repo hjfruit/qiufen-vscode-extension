@@ -223,10 +223,10 @@
     cross-fetch "^4.0.0"
     lodash "^4.17.21"
 
-"@fruits-chain/qiufen-pro-helpers@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.1.4.tgz#9499499ceebf08f2dddb4263f228a53ac0446d64"
-  integrity sha512-XioWkvRDqAPfovj3vqGGYZxNS9kUA6uHFmUENPI2Qqv1UpnIYvBsyz0ez4GbwOeTyf7s9xp8J3CL6fYLAs2x/Q==
+"@fruits-chain/qiufen-pro-helpers@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.1.5.tgz#c810c26e2f37985261a9c11c73c2b719636c1297"
+  integrity sha512-68Fgy9kcb0NrA9GhLVdHyQ4PG9S8kFh+itw7UgHaDbyEa/0gezPpo6cfcFdsCxCtaHV4rkJg+VyGLa8WRp9HFA==
   dependencies:
     cross-fetch "^4.0.0"
     lodash "^4.17.21"
